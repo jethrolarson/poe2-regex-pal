@@ -11,7 +11,7 @@ export type ConceptSelection = {
 export type TabConfig = {
   readonly min_level: number | null
   readonly max_level: number | null
-  readonly selections: readonly ConceptSelection[]
+  readonly selections: ConceptSelection[]
 }
 
 export type Tab = {
@@ -23,13 +23,15 @@ export type Tab = {
 export type Build = {
   readonly id: string
   readonly name: string
-  readonly tabs: readonly Tab[]
+  readonly tabs: Tab[]
 }
 
 export type AppState = {
-  readonly builds: readonly Build[]
+  readonly builds: Build[]
   readonly active_build_id: string
   readonly active_tab_id: string
+  /** Modal visibility — in-memory only; never written to `localStorage` */
+  readonly picker_open: boolean
 }
 
 export const new_id = (): string => crypto.randomUUID()
@@ -60,4 +62,5 @@ export const initial_app_state: AppState = {
   builds: [GENERIC_BUILD],
   active_build_id: GENERIC_BUILD.id,
   active_tab_id: first_tab_id,
+  picker_open: false,
 }

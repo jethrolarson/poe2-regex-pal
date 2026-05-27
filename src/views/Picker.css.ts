@@ -1,10 +1,5 @@
 import { style } from '@vanilla-extract/css'
-
-const panel_bg = '#1b1409'
-const border = '#4a3a22'
-const gold = '#c8a25a'
-const parchment = '#c8b89a'
-const muted = '#8a7a55'
+import { border, gold, muted, parchment, picker_panel } from './theme_tokens'
 
 export const backdrop = style({
   position: 'fixed',
@@ -24,13 +19,19 @@ export const panel = style({
   maxHeight: '80vh',
   display: 'flex',
   flexDirection: 'column',
-  background: panel_bg,
+  background: picker_panel,
   border: `1px solid ${border}`,
   borderRadius: 6,
   overflow: 'hidden',
 })
 
-export const header = style({ display: 'flex', gap: 8, alignItems: 'center', padding: 10, borderBottom: `1px solid ${border}` })
+export const header = style({
+  display: 'flex',
+  gap: 8,
+  alignItems: 'center',
+  padding: 10,
+  borderBottom: `1px solid ${border}`,
+})
 
 export const search = style({
   flex: 1,
@@ -52,10 +53,16 @@ export const mode_btn = style({
   cursor: 'pointer',
   fontSize: 12,
 })
-export const mode_active = style({ background: panel_bg, color: gold, borderColor: gold })
+export const mode_active = style({ background: picker_panel, color: gold, borderColor: gold })
 
 export const results = style({ overflowY: 'auto', padding: 6 })
-export const section_title = style({ color: muted, fontSize: 11, textTransform: 'uppercase', padding: '8px 8px 4px', letterSpacing: 0.5 })
+export const section_title = style({
+  color: muted,
+  fontSize: 11,
+  textTransform: 'uppercase',
+  padding: '8px 8px 4px',
+  letterSpacing: 0.5,
+})
 
 export const row = style({
   display: 'flex',

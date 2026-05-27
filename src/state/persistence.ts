@@ -1,13 +1,13 @@
 import type { AppState } from './app_state'
 
-const KEY = 'poe2-regex-pal:v2'
+const KEY = 'poe2-regex-pal:v3'
+
+type Persisted = Pick<AppState, 'builds' | 'active_build_id' | 'active_tab_id'>
 
 const is_record = (d: unknown): d is Record<string, unknown> =>
   typeof d === 'object' && d !== null
 
-// Shallow guard — enough to reject gross corruption / old shapes. The data is
-// our own, so we trust the nested structure rather than deep-validating it.
-const is_app_state = (d: unknown): d is AppState =>
+const is_saved_state = (d: unknown): d is Persisted =>
   is_record(d) &&
   Array.isArray(d['builds']) &&
   typeof d['active_build_id'] === 'string' &&
@@ -18,14 +18,25 @@ export const load_state = (fallback: AppState): AppState => {
   if (raw === null) return fallback
   try {
     const data: unknown = JSON.parse(raw)
-    return is_app_state(data) ? data : fallback
+    if (!is_saved_state(data)) return fallback
+    return {
+      builds: data.builds,
+      active_build_id: data.active_build_id,
+      active_tab_id: data.active_tab_id,
+      picker_open: false,
+    }
   } catch {
     return fallback
   }
 }
 
 export const save_state = (state: AppState): void => {
-  localStorage.setItem(KEY, JSON.stringify(state))
+  const payload: Persisted = {
+    builds: state.builds,
+    active_build_id: state.active_build_id,
+    active_tab_id: state.active_tab_id,
+  }
+  localStorage.setItem(KEY, JSON.stringify(payload))
 }
 
 export const export_build = (state: AppState): string => {

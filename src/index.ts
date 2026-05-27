@@ -1,5 +1,5 @@
 import { funState } from '@fun-land/fun-state'
-import { App } from './views/app'
+import { App } from './views/App'
 import { initial_app_state } from './state/app_state'
 import { load_state, save_state } from './state/persistence'
 
