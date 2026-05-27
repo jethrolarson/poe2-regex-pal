@@ -1,12 +1,16 @@
-import type { Affix, Concept, LevelRange } from './data/types'
-import { AFFIXES } from './data/affixes'
-import { CONCEPTS } from './concepts'
+
+import { AFFIXES } from '../Affix/Affix'
+import { CONCEPTS } from '../Concept/Concept_operations'
 import { solve, in_band, type SolveResult } from './solver'
-import type { ConceptSelection, TabConfig } from './state/app_state'
+import { type Concept } from '../Concept/Concept_types'
+import type { TabConfig } from '../AppState/AppState_types'
+import type { LevelRange } from './Regex_types'
+import type { Affix } from '../Affix/Affix'
+import type { ConceptSelection } from '../ConceptSelection'
 
 const concept_by_id: ReadonlyMap<string, Concept> = new Map(CONCEPTS.map((c) => [c.id, c]))
 
-const range_of = (config: TabConfig): LevelRange => ({
+export const range_of = (config: TabConfig): LevelRange => ({
   ...(config.min_level !== null ? { min: config.min_level } : {}),
   ...(config.max_level !== null ? { max: config.max_level } : {}),
 })

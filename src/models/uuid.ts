@@ -1,0 +1,1 @@
+export const new_id = (): string => crypto.randomUUID()

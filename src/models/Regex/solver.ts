@@ -1,4 +1,6 @@
-import type { Affix, Concept, LevelRange } from './data/types'
+import type { Affix } from '../Affix/Affix'
+import type { Concept } from '../Concept/Concept_types'
+import type { LevelRange } from './Regex_types'
 
 export const BUDGET = 250
 

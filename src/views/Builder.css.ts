@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css'
-import { border, gold, muted, panel, parchment } from './theme_tokens'
+import { border, gold, muted, panel, parchment } from '../theme_tokens'
 
 export const builder = style({ display: 'flex', flexDirection: 'column', gap: 12 })
 

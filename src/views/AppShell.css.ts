@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css'
-import { border, gold, panel, parchment } from './theme_tokens'
+import { border, gold, panel, parchment } from '../theme_tokens'
 
 export const app = style({
   width: '100%',

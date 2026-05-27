@@ -1,10 +1,11 @@
-import type { Affix, Concept } from './data/types'
-import { AFFIXES } from './data/affixes'
+import type { Affix } from '../Affix/Affix'
+import type { Concept } from './Concept_types'
+import { AFFIXES } from '../Affix/Affix'
 
 const has_stat =
   (id: string) =>
-  (a: Affix): boolean =>
-    a.stats.some((s) => s.id === id)
+    (a: Affix): boolean =>
+      a.stats.some((s) => s.id === id)
 
 // Curated concepts that split mechanic-based RePoE groups (e.g. BaseLocalDefences,
 // which bundles flat armour/evasion/ES) into the concepts players actually think in.

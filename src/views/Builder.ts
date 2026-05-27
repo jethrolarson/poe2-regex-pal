@@ -1,16 +1,17 @@
 import type { FunState } from '@fun-land/fun-state'
 import { bindView, h, hx, type Component } from '@fun-land/fun-web'
-import { AppButton } from './app_button'
-import type { AppState, Tab, TabConfig } from '../state/app_state'
-import type { Affix, LevelRange } from '../data/types'
-import { in_band } from '../solver'
-import { tab_solve, concept_affixes } from '../regex'
-import { CONCEPTS } from '../concepts'
+import { Button } from '../components/Button'
+import type { AppState, Tab, TabConfig } from '../models/AppState/AppState_types'
+import type { Affix } from '../models/Affix/Affix'
+import type { LevelRange } from '../models/Regex/Regex_types'
+import { concept_affixes, tab_solve } from '../models/Regex/Regex_operations'
+import { in_band } from '../models/Regex/solver'
+import { CONCEPTS } from '../models/Concept/Concept_operations'
 import * as bcss from './Builder.css'
 import * as ctrl from './Controls.css'
-import { open_picker, remove_selection, set_all_overrides, set_override } from './app_ops'
-import { update_config } from './app_optics'
-import { read_active_tab } from './app_reads'
+import { open_picker, remove_selection, set_all_overrides, set_override } from '../models/AppState/AppState_operations'
+import { update_config } from '../models/AppState/AppState_operations'
+import { read_active_tab } from '../models/AppState/AppState_reads'
 
 const CONCEPT_LABEL = new Map(CONCEPTS.map((c) => [c.id, c.label]))
 
@@ -57,9 +58,9 @@ const Selection: Component<{
   const head = h('div', { className: bcss.selection_head }, [
     h('span', { className: sign_cls }, [selection.sign === 'include' ? 'INCLUDE' : 'EXCLUDE']),
     h('span', { className: bcss.concept_label }, [CONCEPT_LABEL.get(selection.concept_id) ?? selection.concept_id]),
-    AppButton(signal, { className: ctrl.btn, label: 'All', onclick: () => set_all_overrides(app$, index, affix_ids, true) }),
-    AppButton(signal, { className: ctrl.btn, label: 'None', onclick: () => set_all_overrides(app$, index, affix_ids, false) }),
-    AppButton(signal, { className: ctrl.btn, label: '×', onclick: () => remove_selection(app$, index) }),
+    Button(signal, { label: 'All', onclick: () => set_all_overrides(app$, index, affix_ids, true) }),
+    Button(signal, { label: 'None', onclick: () => set_all_overrides(app$, index, affix_ids, false) }),
+    Button(signal, { label: '×', onclick: () => remove_selection(app$, index) }),
   ])
   const boxes = affixes.map((a) =>
     AffixCheckbox(signal, { app$, index, affix: a, checked: selection.overrides[a.id] ?? in_band(a, range) }),
@@ -86,8 +87,8 @@ export const Builder: Component<{
     level_input(c.max_level, (v) => update_config(app$, (cfg) => ({ ...cfg, max_level: v }))),
   ])
   const add_row = h('div', { className: ctrl.row }, [
-    AppButton(signal, {
-      className: ctrl.btn,
+    Button(signal, {
+
       label: 'Add affix…',
       onclick: () => open_picker(app$),
     }),
@@ -104,8 +105,8 @@ export const Output: Component<{ readonly tab: Tab }> = (signal, { tab }) => {
     h('div', { className: bcss.regex_box }, [result.regex === '' ? '(nothing selected)' : result.regex]),
     h('div', { className: bcss.counter_row }, [
       h('span', { className: counter_cls }, [`${result.length} / 250`]),
-      AppButton(signal, {
-        className: ctrl.btn,
+      Button(signal, {
+
         label: 'Copy',
         onclick: () => void navigator.clipboard.writeText(result.regex),
       }),

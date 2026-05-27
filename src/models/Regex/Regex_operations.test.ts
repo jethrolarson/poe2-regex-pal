@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tab_solve, concept_affixes } from './regex'
+import { tab_solve, concept_affixes } from './Regex_operations'
 import type { TabConfig } from './state/app_state'
 
 const config = (over: Partial<TabConfig> = {}): TabConfig => ({

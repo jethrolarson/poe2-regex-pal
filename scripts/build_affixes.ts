@@ -9,7 +9,7 @@ import { dirname, resolve } from 'node:path'
 const MODS_URL = 'https://repoe-fork.github.io/poe2/mods.min.json'
 const BASES_URL = 'https://repoe-fork.github.io/poe2/base_items.min.json'
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const OUT = resolve(__dirname, '../src/data/affixes.json')
+const OUT = resolve(__dirname, '../src/models/Affix/affix_data.json')
 
 type GenType = 'prefix' | 'suffix' | 'implicit'
 

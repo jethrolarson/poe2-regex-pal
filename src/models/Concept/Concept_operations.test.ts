@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { AFFIXES } from './data/affixes'
+import { AFFIXES } from '../../data/affixes'
 import { CONCEPTS, FEATURED } from './concepts'
 
 const by_id = (id: string) => {

@@ -1,5 +1,5 @@
 import { style } from '@vanilla-extract/css'
-import { border, gold, muted, parchment, picker_panel } from './theme_tokens'
+import { border, gold, muted, parchment, picker_panel } from '../theme_tokens'
 
 export const backdrop = style({
   position: 'fixed',

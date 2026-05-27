@@ -1,15 +1,16 @@
 import { h, hx, bindView, bindClass, type Component } from '@fun-land/fun-web'
 import { derive, funState, mapRead, merge, type FunState } from '@fun-land/fun-state'
-import type { AppState, Sign } from '../state/app_state'
-import type { Concept } from '../data/types'
-import { CONCEPTS, FEATURED } from '../concepts'
-import { search_concepts, concept_sample } from '../regex'
+import type { AppState } from '../models/AppState/AppState_types'
+import type { Concept } from '../models/Concept/Concept_types'
+import { CONCEPTS, FEATURED } from '../models/Concept/Concept_operations'
+import { search_concepts, concept_sample } from '../models/Regex/Regex_operations'
 import * as css from './Picker.css'
+import type { ConceptInclusion } from '../models/ConceptSelection'
 
 /** Ephemeral picker UI fields — modal visibility lives on `AppState.picker_open` */
 type PickerFields = {
   readonly query: string
-  readonly sign: Sign
+  readonly sign: ConceptInclusion
   readonly view: 'featured' | 'all'
 }
 
@@ -19,7 +20,7 @@ const ALL_CONCEPTS = [...CONCEPTS].sort((a, b) => a.label.localeCompare(b.label)
 
 type Props = {
   readonly app$: FunState<AppState>
-  readonly on_choose: (concept_id: string, sign: Sign) => void
+  readonly on_choose: (concept_id: string, sign: ConceptInclusion) => void
   readonly is_added: (concept_id: string) => boolean
 }
 

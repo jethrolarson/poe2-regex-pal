@@ -1,7 +1,7 @@
 import { funState } from '@fun-land/fun-state'
 import { App } from './views/App'
-import { initial_app_state } from './state/app_state'
-import { load_state, save_state } from './state/persistence'
+import { initial_app_state } from './models/AppState/AppState_operations'
+import { load_state, save_state } from './models/AppState/AppState_persistance'
 
 const root = document.getElementById('app')
 if (!root) throw new Error('Missing #app')
