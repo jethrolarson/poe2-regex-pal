@@ -19,6 +19,7 @@ const ALL_CONCEPTS = [...CONCEPTS].sort((a, b) => a.label.localeCompare(b.label)
 type Props = {
   readonly picker$: FunState<PickerState>
   readonly on_choose: (concept_id: string, sign: Sign) => void
+  readonly is_added: (concept_id: string) => boolean
 }
 
 const concept_by_id = new Map(CONCEPTS.map((c) => [c.id, c]))
@@ -64,28 +65,33 @@ const render_results = (
   region: AbortSignal,
   picker$: FunState<PickerState>,
   on_choose: Props['on_choose'],
+  is_added: Props['is_added'],
 ): HTMLElement => {
   const { query, view } = picker$.get()
   const q = query.trim()
+  const available = (c: Concept): boolean => !is_added(c.id)
   if (q !== '') {
-    const matches = search_concepts(q).slice(0, 60)
+    const matches = search_concepts(q).filter(available).slice(0, 60)
     if (matches.length === 0) return h('div', { className: css.empty }, ['No matches'])
     return h('div', {}, matches.map((c) => row(region, picker$, on_choose, c)))
   }
   if (view === 'all') {
     return h('div', {}, [
       browse_toggle(region, picker$, view),
-      ...ALL_CONCEPTS.map((c) => row(region, picker$, on_choose, c)),
+      ...ALL_CONCEPTS.filter(available).map((c) => row(region, picker$, on_choose, c)),
     ])
   }
+  const sections = FEATURED.map((section) => ({
+    title: section.title,
+    concepts: section.concept_ids
+      .map((id) => concept_by_id.get(id))
+      .filter((c): c is Concept => c !== undefined && available(c)),
+  })).filter((s) => s.concepts.length > 0)
   return h('div', {}, [
-    ...FEATURED.map((section) =>
+    ...sections.map((section) =>
       h('div', {}, [
         h('div', { className: css.section_title }, [section.title]),
-        ...section.concept_ids
-          .map((id) => concept_by_id.get(id))
-          .filter((c): c is Concept => c !== undefined)
-          .map((c) => row(region, picker$, on_choose, c)),
+        ...section.concepts.map((c) => row(region, picker$, on_choose, c)),
       ]),
     ),
     browse_toggle(region, picker$, view),
@@ -108,7 +114,7 @@ const mode_toggle = (region: AbortSignal, picker$: FunState<PickerState>): HTMLE
     ]),
   )
 
-export const Picker: Component<Props> = (signal, { picker$, on_choose }) => {
+export const Picker: Component<Props> = (signal, { picker$, on_choose, is_added }) => {
   const input = hx('input', {
     signal,
     props: { className: css.search, type: 'text', placeholder: 'Search affixes…' },
@@ -118,7 +124,7 @@ export const Picker: Component<Props> = (signal, { picker$, on_choose }) => {
   const results = bindView(
     signal,
     mapRead(picker$, (p) => `${p.open ? '1' : '0'} ${p.view} ${p.query}`),
-    (region) => render_results(region, picker$, on_choose),
+    (region) => render_results(region, picker$, on_choose, is_added),
   )
 
   const panel = hx(

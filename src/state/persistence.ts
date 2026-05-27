@@ -1,6 +1,6 @@
 import type { AppState } from './app_state'
 
-const KEY = 'poe2-regex-pal:v1'
+const KEY = 'poe2-regex-pal:v2'
 
 const is_record = (d: unknown): d is Record<string, unknown> =>
   typeof d === 'object' && d !== null

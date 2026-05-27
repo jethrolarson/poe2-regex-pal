@@ -5,6 +5,8 @@ const parchment = '#c8b89a'
 const panel = '#231a0f'
 const border = '#4a3a22'
 
+export const root = style({ width: '100%', minWidth: 0 })
+
 export const app = style({
   width: '100%',
   maxWidth: 820,
@@ -103,6 +105,7 @@ export const regex_box = style({
   fontSize: 13,
   color: parchment,
   wordBreak: 'break-all',
+  overflowWrap: 'anywhere',
   minHeight: 40,
 })
 

@@ -263,6 +263,11 @@ const render_app = (
 export const App: Component<Props> = (signal, { app$ }) => {
   const picker$ = funState<PickerState>(initial_picker)
   const on_choose = (concept_id: string, sign: Sign): void => add_selection(app$, concept_id, sign)
+  const is_added = (concept_id: string): boolean => {
+    const s = app$.get()
+    const tab = find_tab(find_build(s), s)
+    return tab?.config.selections.some((sel) => sel.concept_id === concept_id) ?? false
+  }
   const main = bindView(signal, app$, (region, s) => render_app(region, app$, s, picker$))
-  return h('div', {}, [main, Picker(signal, { picker$, on_choose })])
+  return h('div', { className: css.root }, [main, Picker(signal, { picker$, on_choose, is_added })])
 }
