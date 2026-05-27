@@ -113,6 +113,19 @@ const set_override = (app$: FunState<AppState>, index: number, affix_id: string,
   }))
 }
 
+const set_all_overrides = (
+  app$: FunState<AppState>,
+  index: number,
+  affix_ids: readonly string[],
+  checked: boolean,
+): void => {
+  const overrides = Object.fromEntries(affix_ids.map((id) => [id, checked]))
+  update_config(app$, (c) => ({
+    ...c,
+    selections: c.selections.map((s, i) => (i === index ? { ...s, overrides } : s)),
+  }))
+}
+
 const button = (
   region: AbortSignal,
   className: string,
@@ -183,12 +196,16 @@ const render_selection = (
   range: LevelRange,
 ): HTMLElement => {
   const sign_cls = selection.sign === 'include' ? css.sign_include : css.sign_exclude
+  const affixes = concept_affixes(selection.concept_id)
+  const affix_ids = affixes.map((a) => a.id)
   const head = h('div', { className: css.selection_head }, [
     h('span', { className: sign_cls }, [selection.sign === 'include' ? 'INCLUDE' : 'EXCLUDE']),
     h('span', { className: css.concept_label }, [CONCEPT_LABEL.get(selection.concept_id) ?? selection.concept_id]),
+    button(region, css.btn, 'All', () => set_all_overrides(app$, index, affix_ids, true)),
+    button(region, css.btn, 'None', () => set_all_overrides(app$, index, affix_ids, false)),
     button(region, css.btn, '×', () => remove_selection(app$, index)),
   ])
-  const boxes = concept_affixes(selection.concept_id).map((a) =>
+  const boxes = affixes.map((a) =>
     affix_checkbox(region, app$, index, a, selection.overrides[a.id] ?? in_band(a, range)),
   )
   return h('div', { className: css.selection }, [head, h('div', { className: css.affix_grid }, boxes)])
