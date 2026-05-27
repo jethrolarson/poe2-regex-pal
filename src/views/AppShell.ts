@@ -33,10 +33,10 @@ export const read_tab_strip = (app$: FunState<AppState>) =>
   )
 
 /** Build selector reacts only to builds + active selection; unrelated app edits keep this subtree mounted. */
-const BuildBar: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
+const SheetHeader: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
   h('div', { className: shell.BuildBar }, [
     h('div', { className: css.row }, [
-      h('span', { className: css.label }, ['Sheet:']),
+      h('span', { className: css.label }, 'Sheet:'),
       bindView($, read_build_bar(app$), (region, snap) =>
         hx('select', {
           signal: region,
@@ -47,7 +47,7 @@ const BuildBar: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
       Button($, { label: 'New', onclick: () => add_new_build(app$) }),
     ]),
     h('div', { className: css.row }, [
-      BuildName($, { app$ }),
+      SheetName($, { app$ }),
       Button($, {
         label: 'Clone',
         variant: 'secondary', onclick: () => clone_build(app$)
@@ -78,12 +78,27 @@ const BuildBar: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
   ])
 
 /** Build-name field: keyed on active_build_id so it refreshes on switch but keeps focus while typing. */
-const BuildName: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
-  bindView($, read_active_build(app$), (region, build) => hx('input', {
-    signal: region,
-    props: { className: shell.build_name, type: 'text', value: build?.name ?? '', placeholder: 'Build name' },
-    on: { input: (e) => rename_active_build(app$, e.currentTarget.value) },
-  })
+const SheetName: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
+  bindView($, read_active_build(app$), (region, build) =>
+    hx(
+      'label',
+      { signal: region, props: { className: shell.sheet_name } },
+      [
+        hx('input', {
+          signal: region,
+          props: {
+            className: shell.sheet_name_input,
+            name: 'sheet_name',
+            type: 'text',
+            value: build?.name ?? '',
+            placeholder: 'Untitled sheet',
+          },
+          attrs: { 'aria-label': 'Sheet name' },
+          on: { input: (e) => rename_active_build(app$, e.currentTarget.value) },
+        }),
+        h('span', { className: shell.sheet_name_edit, 'aria-hidden': 'true' }, ['✎']),
+      ],
+    ),
   )
 
 /** Tab-name field: keyed on active_tab_id (not tab content) so typing doesn't lose focus. */
@@ -117,7 +132,7 @@ const TabStrip: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
 export const AppShell: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
   h('div', { className: shell.app }, [
     h('h1', { className: shell.heading }, ['POE2 Regex Pal']),
-    BuildBar($, { app$ }),
+    SheetHeader($, { app$ }),
     TabStrip($, { app$ }),
     TabName($, { app$ }),
     BuilderDeck($, { app$ }),

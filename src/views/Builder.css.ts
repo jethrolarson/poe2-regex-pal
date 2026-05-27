@@ -2,9 +2,9 @@ import { style } from '@vanilla-extract/css'
 import { border, gold, muted, panel, parchment } from '../theme_tokens'
 
 export const builder = style({ display: 'flex', flexDirection: 'column', gap: 12 })
-
+export const deck = style({ display: 'grid', gap: 12 })
 export const level_input = style({
-  width: 70,
+  width: 54,
   background: panel,
   color: parchment,
   border: `1px solid ${border}`,
@@ -45,8 +45,6 @@ export const affix_text = style({ flex: 1 })
 export const req = style({ color: muted, fontSize: 11, whiteSpace: 'nowrap' })
 
 export const output = style({
-  borderTop: `1px solid ${border}`,
-  paddingTop: 12,
 })
 
 export const regex_box = style({
@@ -59,7 +57,7 @@ export const regex_box = style({
   color: parchment,
   wordBreak: 'break-all',
   overflowWrap: 'anywhere',
-  minHeight: 40,
+  minHeight: 67,
 })
 
 export const counter_row = style({

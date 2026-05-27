@@ -1,7 +1,5 @@
 import { style } from '@vanilla-extract/css'
-import { background_color, border, gold, interactive_color, panel, parchment, text_color } from '../theme_tokens'
-import * as controls from './Controls.css'
-
+import { background_color, border, gold, interactive_color, muted, panel, parchment, text_color } from '../theme_tokens'
 export const app = style({
   width: '100%',
   maxWidth: 820,
@@ -57,6 +55,49 @@ export const tab_active = style({
 })
 
 
-export const build_name = style([controls.name_input, {
+/** Clickable title row: input reads as heading; pencil hints edit without form chrome */
+export const sheet_name = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  maxWidth: '100%',
+  cursor: 'text',
+  ':hover': { opacity: 0.95 },
+})
+
+export const sheet_name_input = style({
   fontSize: 20,
-}])
+  fontWeight: 700,
+  lineHeight: 1.2,
+  color: text_color,
+  background: 'transparent',
+  border: 'none',
+  borderRadius: 0,
+  padding: 0,
+  margin: 0,
+  minWidth: '6ch',
+  maxWidth: '100%',
+  fieldSizing: 'content',
+  cursor: 'text',
+  ':focus': {
+    outline: 'none',
+    borderBottom: `1px solid ${border}`,
+    marginBottom: -1,
+  },
+  '::placeholder': { color: muted, fontWeight: 400, opacity: 0.7 },
+})
+
+export const sheet_name_edit = style({
+  flexShrink: 0,
+  fontSize: 15,
+  lineHeight: 1,
+  color: muted,
+  opacity: 0.55,
+  userSelect: 'none',
+  selectors: {
+    [`${sheet_name}:hover &, ${sheet_name}:focus-within &`]: {
+      opacity: 1,
+      color: gold,
+    },
+  },
+})

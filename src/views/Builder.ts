@@ -80,23 +80,11 @@ export const Builder: Component<{
   readonly on_open_picker: () => void
 }> = (signal, { config$, on_open_picker }) => {
   const c = config$.get()
-  const level_input = (value: number | null, set: (v: number | null) => void): HTMLElement =>
-    hx('input', {
-      signal,
-      props: {
-        type: 'number',
-        className: bcss.level_input,
-        value: value === null ? '' : String(value),
-      },
-      attrs: { min: String(TAB_LEVEL_MIN), max: String(TAB_LEVEL_MAX) },
-      on: { change: (e) => set(parse_level(e.currentTarget.value)) },
-    })
   const level_row = h('div', { className: ctrl.row }, [
-    h('span', { className: ctrl.label }, ['Level band:']),
-    h('span', { className: ctrl.label }, ['min']),
-    level_input(c.min_level, (v) => config$.prop('min_level').set(v)),
-    h('span', { className: ctrl.label }, ['max']),
-    level_input(c.max_level, (v) => config$.prop('max_level').set(v)),
+    h('span', { className: ctrl.label }, ['Select by level:']),
+    hx('input', { signal, props: { className: bcss.level_input, type: 'number', value: String(c.min_level ?? ''), min: String(TAB_LEVEL_MIN), max: String(TAB_LEVEL_MAX) }, on: { change: (e) => config$.prop('min_level').set(parse_level(e.currentTarget.value)) } }),
+    h('span', { className: ctrl.label }, ['to']),
+    hx('input', { signal, props: { className: bcss.level_input, type: 'number', value: String(c.max_level ?? ''), min: String(TAB_LEVEL_MIN), max: String(TAB_LEVEL_MAX) }, on: { change: (e) => config$.prop('max_level').set(parse_level(e.currentTarget.value)) } }),
   ])
   const add_row = h('div', { className: ctrl.row }, [
     Button(signal, {
@@ -104,9 +92,8 @@ export const Builder: Component<{
       onclick: on_open_picker,
     }),
   ])
-  const range = range_of(c)
   const selections = c.selections.map((sel, i) =>
-    Selection(signal, { config$, selection: sel, index: i, range }),
+    Selection(signal, { config$, selection: sel, index: i, range: range_of(c) }),
   )
   return h('div', { className: bcss.builder }, [level_row, add_row, ...selections])
 }
@@ -136,7 +123,7 @@ export const BuilderDeck: Component<{
     tab === undefined
       ? h('span', { hidden: true })
       : bindView(region, config$, (deck_region, config) =>
-        h('div', { style: { display: 'contents' } }, [
+        h('div', { className: bcss.deck }, [
           Output(deck_region, { config }),
           Builder(deck_region, { config$, on_open_picker }),
         ]),
