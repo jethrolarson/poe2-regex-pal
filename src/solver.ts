@@ -13,7 +13,17 @@ export type SolveResult = {
 const distinctive_token = (name: string): string =>
   name.replace(/^of the /i, '').replace(/^of /i, '')
 
-export const fragment_for = (affix: Affix): string => distinctive_token(affix.name)
+// Implicits have no affix name, so we match their stat line. Roll values are
+// stripped because items show the rolled number (+12), not the range (10-15).
+const descriptive_phrase = (text: string): string =>
+  text
+    .replace(/\n/g, ' ')
+    .replace(/[+-]?\(?\d[\d.,\s–-]*\)?%?/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+export const fragment_for = (affix: Affix): string =>
+  affix.name.length > 0 ? distinctive_token(affix.name) : descriptive_phrase(affix.text)
 
 // Keep a minimal set: if one fragment is a substring of another, the shorter one
 // already matches everything the longer one would, so drop the longer.
@@ -27,7 +37,7 @@ const drop_subsumed = (fragments: readonly string[]): string[] => {
 }
 
 const fragments_of = (affixes: readonly Affix[]): string[] =>
-  drop_subsumed(affixes.filter((a) => a.name.length > 0).map(fragment_for))
+  drop_subsumed(affixes.map(fragment_for).filter((f) => f.length > 0))
 
 export const in_band = (affix: Affix, range: LevelRange): boolean =>
   affix.required_level >= (range.min ?? 0) &&

@@ -49,6 +49,25 @@ describe('fragment_for', () => {
   })
 })
 
+describe('fragment_for (implicit / nameless)', () => {
+  const implicit = (text: string): Affix => ({
+    id: 'imp',
+    name: '',
+    text,
+    group: 'g',
+    required_level: 1,
+    gen_type: 'implicit',
+    stats: [],
+  })
+  it('matches descriptive text with roll numbers stripped', () => {
+    expect(fragment_for(implicit('+(10-15) to Intelligence'))).toBe('to Intelligence')
+    expect(fragment_for(implicit('(20-30)% increased Bolt Speed'))).toBe('increased Bolt Speed')
+    expect(fragment_for(implicit('Grenade Skills Fire an additional Projectile'))).toBe(
+      'Grenade Skills Fire an additional Projectile',
+    )
+  })
+})
+
 describe('in_band', () => {
   it('respects min and max', () => {
     expect(in_band(movement[1], { min: 16, max: 33 })).toBe(true) // req 16

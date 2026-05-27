@@ -2,7 +2,7 @@ import type { Affix, GenType } from './types'
 import raw_affixes from './affixes.json'
 
 const to_gen_type = (g: string): GenType => {
-  if (g === 'prefix' || g === 'suffix') return g
+  if (g === 'prefix' || g === 'suffix' || g === 'implicit') return g
   throw new Error(`Unexpected gen_type: ${g}`)
 }
 

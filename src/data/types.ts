@@ -1,4 +1,4 @@
-export type GenType = 'prefix' | 'suffix'
+export type GenType = 'prefix' | 'suffix' | 'implicit'
 
 export type AffixStat = {
   readonly id: string
