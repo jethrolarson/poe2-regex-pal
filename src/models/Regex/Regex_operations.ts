@@ -3,10 +3,10 @@ import { AFFIXES } from '../Affix/Affix'
 import { CONCEPTS } from '../Concept/Concept_operations'
 import { solve, in_band, type SolveResult } from './solver'
 import { type Concept } from '../Concept/Concept_types'
-import type { TabConfig } from '../AppState/AppState_types'
+import type { TabConfig } from '../TabConfig/TabConfig_types'
 import type { LevelRange } from './Regex_types'
 import type { Affix } from '../Affix/Affix'
-import type { ConceptSelection } from '../ConceptSelection'
+import type { ConceptSelection } from '../TabConfig/TabConfig_types'
 
 const concept_by_id: ReadonlyMap<string, Concept> = new Map(CONCEPTS.map((c) => [c.id, c]))
 

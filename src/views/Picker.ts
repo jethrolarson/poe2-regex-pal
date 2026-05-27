@@ -5,7 +5,7 @@ import type { Concept } from '../models/Concept/Concept_types'
 import { CONCEPTS, FEATURED } from '../models/Concept/Concept_operations'
 import { search_concepts, concept_sample } from '../models/Regex/Regex_operations'
 import * as css from './Picker.css'
-import type { ConceptInclusion } from '../models/ConceptSelection'
+import type { ConceptInclusion } from '../models/TabConfig/TabConfig_types'
 
 /** Ephemeral picker UI fields — modal visibility lives on `AppState.picker_open` */
 type PickerFields = {
@@ -68,7 +68,7 @@ const BrowseToggle: Component<FieldProps & { readonly view: PickerFields['view']
       props: { className: css.browse_toggle },
       on: {
         click: () =>
-          fields$.mod((f) => ({ ...f, view: f.view === 'all' ? 'featured' : 'all' })),
+          fields$.prop('view').set(view === 'all' ? 'featured' : 'all'),
       },
     },
     [view === 'all' ? '← Featured' : `Browse all (${ALL_CONCEPTS.length}) →`],
@@ -125,12 +125,12 @@ const ModeToggle: Component<FieldProps> = (signal, { fields$ }) =>
       hx('button', {
         signal: r,
         props: { className: sign === 'include' ? `${css.mode_btn} ${css.mode_active}` : css.mode_btn },
-        on: { click: () => fields$.mod((f0) => ({ ...f0, sign: 'include' })) },
+        on: { click: () => fields$.prop('sign').set('include') },
       }, ['Include']),
       hx('button', {
         signal: r,
         props: { className: sign === 'exclude' ? `${css.mode_btn} ${css.mode_active}` : css.mode_btn },
-        on: { click: () => fields$.mod((f0) => ({ ...f0, sign: 'exclude' })) },
+        on: { click: () => fields$.prop('sign').set('exclude') },
       }, ['Exclude']),
     ]),
   )
@@ -144,7 +144,7 @@ const SearchInput: Component<FieldProps> = (signal, { fields$ }) =>
       placeholder: 'Search affixes…',
     },
     attrs: { 'data-picker-search': 'true' },
-    on: { input: (e) => fields$.mod((f) => ({ ...f, query: e.currentTarget.value })) },
+    on: { input: (e) => fields$.prop('query').set(e.currentTarget.value) },
   })
 
 const PickerHeader: Component<FieldProps> = (signal, { fields$ }) =>

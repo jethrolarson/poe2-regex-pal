@@ -1,8 +1,18 @@
-import type { Tab } from "./AppState_types"
-import { includeConcept } from "../ConceptSelection"
-import type { Build } from "./AppState_types"
+import type { Tab } from './AppState_types'
+import type { Build } from './AppState_types'
+import type { ConceptSelection } from '../TabConfig/TabConfig_types'
 
-const UNIVERSAL = [includeConcept('group_MovementVelocity'), includeConcept('group_IncreasedLife'), includeConcept('res_all')]
+const include_concept = (concept_id: string): ConceptSelection => ({
+  concept_id,
+  sign: 'include',
+  overrides: {},
+})
+
+const UNIVERSAL = [
+  include_concept('group_MovementVelocity'),
+  include_concept('group_IncreasedLife'),
+  include_concept('res_all'),
+]
 
 const act_tab = (name: string, max_level: number): Tab => ({
     id: `t_generic_${name.toLowerCase().replace(/\s+/g, '')}`,

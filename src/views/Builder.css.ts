@@ -45,9 +45,6 @@ export const affix_text = style({ flex: 1 })
 export const req = style({ color: muted, fontSize: 11, whiteSpace: 'nowrap' })
 
 export const output = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 6,
   borderTop: `1px solid ${border}`,
   paddingTop: 12,
 })
@@ -65,6 +62,13 @@ export const regex_box = style({
   minHeight: 40,
 })
 
-export const counter_row = style({ display: 'flex', alignItems: 'center', gap: 10 })
-export const counter = style({ fontSize: 12, color: muted })
+export const counter_row = style({
+  display: 'flex',
+  flexDirection: 'column-reverse',
+  alignItems: 'flex-end',
+  gap: 4,
+  float: 'right',
+  paddingInlineStart: 8,
+})
+export const counter = style({ fontSize: 12, color: muted, paddingInline: 4 })
 export const counter_over = style({ color: '#d06b5c', fontWeight: 700 })

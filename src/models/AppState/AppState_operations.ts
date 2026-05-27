@@ -1,10 +1,10 @@
-import { Acc } from '@fun-land/accessor'
+import { Acc, append } from '@fun-land/accessor'
 import { type FunState, merge } from '@fun-land/fun-state'
-import type { AppState, Build, Tab, TabConfig } from './AppState_types'
+import type { AppState, Build, Tab } from './AppState_types'
 import { new_id } from '../uuid'
 import { GENERIC_BUILD } from './presets'
 import { tab_solve } from '../Regex/Regex_operations'
-import type { ConceptInclusion } from '../ConceptSelection'
+import type { ConceptInclusion } from '../TabConfig/TabConfig_types'
 import { parse_build } from './AppState_persistance'
 
 const first_tab_id = GENERIC_BUILD.tabs[0].id
@@ -49,10 +49,6 @@ export const active_tab_config_acc = active_tab_acc.prop('config')
 
 export const map_active_build = (s: AppState, fn: (b: Build) => Build): AppState => active_build_acc.mod(fn)(s)
 
-export const update_config = (app$: FunState<AppState>, fn: (c: TabConfig) => TabConfig): void =>
-    app$.focus(active_tab_config_acc).mod(fn)
-
-
 export const blank_tab = (name: string): Tab => ({
     id: new_id(),
     name,
@@ -79,7 +75,7 @@ const _add_build = (build: Build) => (s: AppState): AppState => {
     return { ...s, builds: [...s.builds, build], active_build_id: build.id, active_tab_id: build.tabs[0]?.id ?? '' }
 }
 
-// Imports a pasted build, regenerating ids so it can't collide with existing builds.
+// Imports a pasted build, regenerating ids so it can't collide with existing builds if build is imported twice.
 export const import_build = (app$: FunState<AppState>, json: string): boolean => {
     const parsed = parse_build(json)
     if (parsed === null) return false
@@ -98,6 +94,7 @@ export const clone_build = (app$: FunState<AppState>): void => {
     app$.mod((s) => {
         const src = find_active_build(s)
         if (src === undefined) return s
+        // Regenerate ids so it can't collide with existing builds
         const tabs = src.tabs.map((t) => ({ ...t, id: new_id() }))
         const b: Build = { id: new_id(), name: `${src.name} (copy)`, tabs }
         return _add_build(b)(s)
@@ -112,12 +109,12 @@ export const delete_build = (app$: FunState<AppState>): void => {
     })
 }
 
-const _add_tab = (tab: Tab) => (s: AppState): AppState => active_build_acc.prop('tabs').mod((tabs) => [...tabs, tab])(s)
+const _add_tab = (tab: Tab) => (s: AppState): AppState => active_build_acc.prop('tabs').mod(append(tab))(s)
 
 export const add_tab = (app$: FunState<AppState>): void =>
     app$.mod(s => {
-        const t = blank_tab(`Tab ${(find_active_build(s)?.tabs.length ?? 0) + 1}`)
-        return _add_tab(t)(s)
+
+        return _add_tab(blank_tab(`Tab ${(find_active_build(s)?.tabs.length ?? 0) + 1}`))(s)
     })
 
 
@@ -126,32 +123,5 @@ export const select_tab = (app$: FunState<AppState>, t: Tab): void => {
     app$.prop('active_tab_id').set(t.id)
 }
 
-export const add_selection = (app$: FunState<AppState>, concept_id: string, sign: ConceptInclusion): void => {
-    update_config(app$, (c) => ({ ...c, selections: [...c.selections, { concept_id, sign, overrides: {} }] }))
-}
-
-export const remove_selection = (app$: FunState<AppState>, index: number): void => {
-    update_config(app$, (c) => ({ ...c, selections: c.selections.filter((_, i) => i !== index) }))
-}
-
-export const set_override = (app$: FunState<AppState>, index: number, affix_id: string, checked: boolean): void => {
-    update_config(app$, (c) => ({
-        ...c,
-        selections: c.selections.map((s, i) =>
-            i === index ? { ...s, overrides: { ...s.overrides, [affix_id]: checked } } : s,
-        ),
-    }))
-}
-
-export const set_all_overrides = (
-    app$: FunState<AppState>,
-    index: number,
-    affix_ids: readonly string[],
-    checked: boolean,
-): void => {
-    const overrides = Object.fromEntries(affix_ids.map((id) => [id, checked]))
-    update_config(app$, (c) => ({
-        ...c,
-        selections: c.selections.map((s, i) => (i === index ? { ...s, overrides } : s)),
-    }))
-}
+export const add_selection = (app$: FunState<AppState>, concept_id: string, sign: ConceptInclusion): void =>
+    app$.focus(active_tab_config_acc.prop('selections')).mod(append({ concept_id, sign, overrides: {} }))

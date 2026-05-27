@@ -1,3 +1,6 @@
+export const background_color = '#1a1209'
+export const text_color = '#c8b89a'
+export const interactive_color = '#df9546'
 /** Shared palette for view CSS modules */
 export const gold = '#c8a25a'
 export const parchment = '#c8b89a'

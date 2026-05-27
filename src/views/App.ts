@@ -1,6 +1,6 @@
 import { h, type Component } from '@fun-land/fun-web'
 import { type FunState } from '@fun-land/fun-state'
-import type { ConceptInclusion } from '../models/ConceptSelection'
+import type { ConceptInclusion } from '../models/TabConfig/TabConfig_types'
 import * as css from './App.css'
 import { add_selection } from '../models/AppState/AppState_operations'
 import { is_concept_added } from '../models/AppState/AppState_reads'
