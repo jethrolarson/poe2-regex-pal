@@ -26,21 +26,42 @@ export const sign_exclude = style({ color: '#d06b5c', fontWeight: 700, fontSize:
 export const concept_label = style({ color: gold, fontSize: 14, flex: 1 })
 
 export const affix_grid = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 6,
+})
+
+/** Two affix cells per row; stripe alternates by visual row, not grid child index */
+export const affix_row = style({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-  gap: '2px 10px',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: '6px 12px',
+  borderRadius: 4,
+  selectors: {
+    '&:nth-child(odd)': { backgroundColor: 'rgba(255, 255, 255, 0.06)' },
+  },
 })
 
 export const affix_label = style({
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   gap: 6,
+  padding: '4px 6px',
   fontSize: 12,
   color: parchment,
   cursor: 'pointer',
+  minWidth: 0,
+  selectors: {
+    '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.12)' },
+  },
 })
 
-export const affix_text = style({ flex: 1 })
+export const affix_text = style({
+  flex: 1,
+  minWidth: 0,
+  whiteSpace: 'pre-line',
+  overflowWrap: 'anywhere',
+})
 
 export const req = style({ color: muted, fontSize: 11, whiteSpace: 'nowrap' })
 

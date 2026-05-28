@@ -1,6 +1,6 @@
 import type { AppState, Build } from "./AppState_types"
 
-const KEY = 'poe2-regex-pal:v3'
+const KEY = 'poe2-regex-pal:v4'
 
 type Persisted = Pick<AppState, 'builds' | 'active_build_id' | 'active_tab_id'>
 

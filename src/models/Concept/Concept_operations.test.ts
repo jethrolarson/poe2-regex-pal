@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { AFFIXES } from '../../data/affixes'
-import { CONCEPTS, FEATURED } from './concepts'
+import { AFFIXES } from '../Affix/Affix'
+import { CONCEPTS, FEATURED } from './Concept_operations'
 
 const by_id = (id: string) => {
   const c = CONCEPTS.find((x) => x.id === id)

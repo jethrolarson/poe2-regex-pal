@@ -1,28 +1,58 @@
-import { Acc, removeAt } from '@fun-land/accessor'
 import type { FunState } from '@fun-land/fun-state'
-import type { TabConfig } from './TabConfig_types'
+import { new_id } from '../uuid'
+import { concept_affixes } from '../Regex/Regex_operations'
+import { in_band } from '../Regex/solver'
+import type { LevelRange } from '../Regex/Regex_types'
+import type { ConceptInclusion, ConceptSelection } from './TabConfig_types'
 
-export const remove_selection = (config$: FunState<TabConfig>, index: number): void =>
-  config$.prop('selections').mod(removeAt(index))
+const range_of = (min: number | null, max: number | null): LevelRange => ({
+  ...(min !== null ? { min } : {}),
+  ...(max !== null ? { max } : {}),
+})
 
-const selections_by_index_acc = (index: number) => Acc<TabConfig>().prop('selections').at(index)
-const overrides_by_index_acc = (index: number) => selections_by_index_acc(index).prop('overrides')
-const overrides_by_affix_id_acc = (index: number, affix_id: string) => Acc<TabConfig>().prop('selections').at(index).prop('overrides').prop(affix_id)
+/** Checked state for every affix in a concept, by whether its tier is in [min,max]. */
+export const stamp_overrides = (
+  concept_id: string,
+  min: number | null,
+  max: number | null,
+): Record<string, boolean> =>
+  Object.fromEntries(concept_affixes(concept_id).map((a) => [a.id, in_band(a, range_of(min, max))]))
+
+export const make_selection = (
+  concept_id: string,
+  sign: ConceptInclusion,
+  min: number | null,
+  max: number | null,
+): ConceptSelection => ({
+  id: new_id(),
+  concept_id,
+  sign,
+  min_level: min,
+  max_level: max,
+  overrides: stamp_overrides(concept_id, min, max),
+})
 
 export const set_override = (
-  config$: FunState<TabConfig>,
-  index: number,
+  selection$: FunState<ConceptSelection>,
   affix_id: string,
   checked: boolean,
-): void =>
-  config$.focus(overrides_by_affix_id_acc(index, affix_id)).set(checked)
+): void => selection$.prop('overrides').prop(affix_id).set(checked)
 
 export const set_all_overrides = (
-  config$: FunState<TabConfig>,
-  index: number,
+  selection$: FunState<ConceptSelection>,
   affix_ids: readonly string[],
   checked: boolean,
-): void => {
-  const overrides = Object.fromEntries(affix_ids.map((id) => [id, checked]))
-  config$.focus(overrides_by_index_acc(index)).set(overrides)
-}
+): void => selection$.prop('overrides').set(Object.fromEntries(affix_ids.map((id) => [id, checked])))
+
+/** Re-stamp overrides for a new tier range, remembering the range on the selection. */
+export const apply_level_range = (
+  selection$: FunState<ConceptSelection>,
+  min: number | null,
+  max: number | null,
+): void =>
+  selection$.mod((s) => ({
+    ...s,
+    min_level: min,
+    max_level: max,
+    overrides: stamp_overrides(s.concept_id, min, max),
+  }))

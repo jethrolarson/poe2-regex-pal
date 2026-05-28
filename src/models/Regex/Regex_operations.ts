@@ -1,43 +1,27 @@
 
 import { AFFIXES } from '../Affix/Affix'
 import { CONCEPTS } from '../Concept/Concept_operations'
-import { solve, in_band, type SolveResult } from './solver'
+import { solve, type SolveResult } from './solver'
 import { type Concept } from '../Concept/Concept_types'
 import type { TabConfig } from '../TabConfig/TabConfig_types'
-import type { LevelRange } from './Regex_types'
 import type { Affix } from '../Affix/Affix'
 import type { ConceptSelection } from '../TabConfig/TabConfig_types'
 
 const concept_by_id: ReadonlyMap<string, Concept> = new Map(CONCEPTS.map((c) => [c.id, c]))
 
-export const range_of = (config: TabConfig): LevelRange => ({
-  ...(config.min_level !== null ? { min: config.min_level } : {}),
-  ...(config.max_level !== null ? { max: config.max_level } : {}),
-})
-
-// Affixes effectively checked for a selection: concept members whose level-range
-// default is flipped by any per-affix override.
-const affixes_of = (selection: ConceptSelection, range: LevelRange): Affix[] => {
+// Checked affixes for a selection: concept members whose override is true.
+const affixes_of = (selection: ConceptSelection): Affix[] => {
   const concept = concept_by_id.get(selection.concept_id)
   if (concept === undefined) return []
-  return AFFIXES.filter((a) => {
-    if (!concept.includes(a)) return false
-    return selection.overrides[a.id] ?? in_band(a, range)
-  })
+  return AFFIXES.filter((a) => concept.includes(a) && (selection.overrides[a.id] ?? false))
 }
 
 const dedupe = (affixes: readonly Affix[]): Affix[] => [
   ...new Map(affixes.map((a) => [a.id, a])).values(),
 ]
 
-const collect = (config: TabConfig, sign: ConceptSelection['sign']): Affix[] => {
-  const range = range_of(config)
-  return dedupe(
-    config.selections
-      .filter((s) => s.sign === sign)
-      .flatMap((s) => affixes_of(s, range)),
-  )
-}
+const collect = (config: TabConfig, sign: ConceptSelection['sign']): Affix[] =>
+  dedupe(config.selections.filter((s) => s.sign === sign).flatMap(affixes_of))
 
 export const tab_solve = (config: TabConfig): SolveResult =>
   solve(collect(config, 'include'), collect(config, 'exclude'))

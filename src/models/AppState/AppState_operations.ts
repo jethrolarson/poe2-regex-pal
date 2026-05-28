@@ -3,11 +3,13 @@ import { type FunState, merge } from '@fun-land/fun-state'
 import type { AppState, Build, Tab } from './AppState_types'
 import { new_id } from '../uuid'
 import { GENERIC_BUILD } from './presets'
+import { copy_to_clipboard } from '../../clipboard'
 import { tab_solve } from '../Regex/Regex_operations'
 import type { ConceptInclusion } from '../TabConfig/TabConfig_types'
+import { make_selection } from '../TabConfig/TabConfig_operations'
 import { parse_build } from './AppState_persistance'
 
-const first_tab_id = GENERIC_BUILD.tabs[0].id
+const first_tab_id = GENERIC_BUILD.tabs[0]?.id ?? ''
 
 export const initial_app_state: AppState = {
     builds: [GENERIC_BUILD],
@@ -52,7 +54,7 @@ export const map_active_build = (s: AppState, fn: (b: Build) => Build): AppState
 export const blank_tab = (name: string): Tab => ({
     id: new_id(),
     name,
-    config: { min_level: null, max_level: null, selections: [] },
+    config: { selections: [] },
 })
 
 export const switch_build = (app$: FunState<AppState>, id: string): void => {
@@ -118,10 +120,14 @@ export const add_tab = (app$: FunState<AppState>): void =>
     })
 
 
-export const select_tab = (app$: FunState<AppState>, t: Tab): void => {
-    void navigator.clipboard.writeText(tab_solve(t.config).regex)
+export const select_tab = (app$: FunState<AppState>, t: Tab, on_copied?: () => void): void => {
+    copy_to_clipboard(tab_solve(t.config).regex, on_copied)
     app$.prop('active_tab_id').set(t.id)
 }
 
+// New selection inherits the last selection's tier range (sticky), full range if none.
 export const add_selection = (app$: FunState<AppState>, concept_id: string, sign: ConceptInclusion): void =>
-    app$.focus(active_tab_config_acc.prop('selections')).mod(append({ concept_id, sign, overrides: {} }))
+    app$.focus(active_tab_config_acc.prop('selections')).mod((sels) => {
+        const last = sels[sels.length - 1]
+        return [...sels, make_selection(concept_id, sign, last?.min_level ?? null, last?.max_level ?? null)]
+    })
