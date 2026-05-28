@@ -3,8 +3,6 @@ import { type FunState, merge } from '@fun-land/fun-state'
 import type { AppState, Build, Tab } from './AppState_types'
 import { new_id } from '../uuid'
 import { GENERIC_BUILD } from './presets'
-import { copy_to_clipboard } from '../../clipboard'
-import { tab_solve } from '../Regex/Regex_operations'
 import type { ConceptInclusion } from '../TabConfig/TabConfig_types'
 import { make_selection } from '../TabConfig/TabConfig_operations'
 import { parse_build } from './AppState_persistance'
@@ -120,8 +118,7 @@ export const add_tab = (app$: FunState<AppState>): void =>
     })
 
 
-export const select_tab = (app$: FunState<AppState>, t: Tab, on_copied?: () => void): void => {
-    copy_to_clipboard(tab_solve(t.config).regex, on_copied)
+export const select_tab = (app$: FunState<AppState>, t: Tab): void => {
     app$.prop('active_tab_id').set(t.id)
 }
 

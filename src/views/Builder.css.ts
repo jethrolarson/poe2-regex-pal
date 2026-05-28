@@ -3,13 +3,15 @@ import { border, gold, muted, panel, parchment } from '../theme_tokens'
 
 export const builder = style({ display: 'flex', flexDirection: 'column', gap: 12 })
 export const deck = style({ display: 'grid', gap: 12 })
+/** Level min/max selects in concept headers — matches `ctrl.label` / small buttons */
 export const level_input = style({
   width: 54,
   background: panel,
   color: parchment,
   border: `1px solid ${border}`,
   borderRadius: 4,
-  padding: '4px 6px',
+  fontSize: 13,
+  padding: '2px 6px',
 })
 
 export const selection = style({
@@ -79,6 +81,11 @@ export const regex_box = style({
   wordBreak: 'break-all',
   overflowWrap: 'anywhere',
   minHeight: 67,
+})
+
+export const regex_box_copyable = style({
+  cursor: 'pointer',
+  ':hover': { borderColor: gold },
 })
 
 export const counter_row = style({

@@ -116,10 +116,7 @@ const TabName: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
   )
 
 /** Tab strip uses `renderWhen` at call site; inner `bindView` updates rows without rebuilding static chrome. */
-const TabStrip: Component<{
-  app$: FunState<AppState>
-  on_regex_copied: () => void
-}> = ($, { app$, on_regex_copied }) =>
+const TabStrip: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
   bindView($, read_tab_strip(app$), (region, { build, active_tab_id }) =>
     build === undefined
       ? h('span', { hidden: true })
@@ -129,7 +126,7 @@ const TabStrip: Component<{
           hx('button', {
             signal: region,
             props: { className: t.id === active_tab_id ? `${shell.tab} ${shell.tab_active}` : shell.tab },
-            on: { click: () => select_tab(app$, t, on_regex_copied) },
+            on: { click: () => select_tab(app$, t) },
           }, [t.name]),
         ),
         hx('button', { signal: region, props: { className: shell.tab }, on: { click: () => add_tab(app$) } }, ['+']),
@@ -143,7 +140,7 @@ export const AppShell: Component<{
   h('div', { className: shell.app }, [
     h('h1', { className: shell.heading }, ['POE2 Regex Pal']),
     SheetHeader($, { app$ }),
-    TabStrip($, { app$, on_regex_copied }),
+    TabStrip($, { app$ }),
     TabName($, { app$ }),
     BuilderDeck($, { app$, on_regex_copied }),
     h('div', { className: css.row }, [Button($, {

@@ -85,13 +85,13 @@ const Selection: Component<{
     h('span', { className: sign_cls }, [sel.sign === 'include' ? 'INCLUDE' : 'EXCLUDE']),
     h('span', { className: bcss.concept_label }, [CONCEPT_LABEL.get(sel.concept_id) ?? sel.concept_id]),
     h('span', { className: ctrl.label }, 'Select:'),
-    Button(signal, { label: 'All', onclick: () => set_all_overrides(selection$, affix_ids, true) }),
-    Button(signal, { label: 'None', onclick: () => set_all_overrides(selection$, affix_ids, false) }),
+    Button(signal, { label: 'All', size: 'small', onclick: () => set_all_overrides(selection$, affix_ids, true) }),
+    Button(signal, { label: 'None', size: 'small', onclick: () => set_all_overrides(selection$, affix_ids, false) }),
     h('span', { className: ctrl.label }, ['by lvl']),
     LevelSelect(signal, { selection$, which: 'min', levels }),
     h('span', { className: ctrl.label }, ['–']),
     LevelSelect(signal, { selection$, which: 'max', levels }),
-    Button(signal, { label: '×', onclick: remove }),
+    Button(signal, { label: '×', size: 'small', onclick: remove }),
   ])
   const grid = h(
     'div',
@@ -127,6 +127,9 @@ export const Output: Component<{
   const result = tab_solve(config)
   const counter_cls = result.over_budget ? `${bcss.counter} ${bcss.counter_over}` : bcss.counter
   const copy_regex = (): void => copy_to_clipboard(result.regex, on_regex_copied)
+  const has_regex = result.regex !== ''
+  const regex_display = has_regex ? result.regex : '(nothing selected)'
+  const regex_cls = has_regex ? `${bcss.regex_box} ${bcss.regex_box_copyable}` : bcss.regex_box
   return h('div', { className: bcss.output }, [
     h('div', { className: bcss.counter_row }, [
       h('span', { className: counter_cls }, [`${result.length} / 250`]),
@@ -135,7 +138,16 @@ export const Output: Component<{
         onclick: copy_regex,
       }),
     ]),
-    h('div', { className: bcss.regex_box }, [result.regex === '' ? '(nothing selected)' : result.regex]),
+    hx(
+      'div',
+      {
+        signal,
+        props: { className: regex_cls },
+        attrs: has_regex ? { title: 'Click to copy' } : {},
+        on: has_regex ? { click: copy_regex } : {},
+      },
+      [regex_display],
+    ),
   ])
 }
 
