@@ -30,7 +30,7 @@ export const show_toast = (toast$: FunState<ToastState>, message: string): void 
   toast$.set({ message, id, phase: 'enter' })
   visible_timer = setTimeout(() => {
     const cur = toast$.get()
-    if (cur === null || cur.id !== id) return
+    if (cur?.id !== id) return
     toast$.set({ ...cur, phase: 'leave' })
     fade_timer = setTimeout(() => {
       if (toast$.get()?.id === id) toast$.set(null)
