@@ -43,6 +43,7 @@ export const tab = style({
   border: `1px solid ${border}`,
   borderBottomColor: gold,
   borderRadius: '6px 6px 0 0',
+  /** @ts-expect-error cornerShape is a new css property */
   cornerShape: 'bevel',
   padding: '6px 12px',
   cursor: 'pointer',

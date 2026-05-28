@@ -143,12 +143,15 @@ export const AppShell: Component<{
     TabStrip($, { app$ }),
     TabName($, { app$ }),
     BuilderDeck($, { app$, on_regex_copied }),
-    h('div', { className: css.row }, [Button($, {
+    h('div', { className: css.row },
+      h('em', {}, ['Inspired by ', h('a', { href: 'https://www.youtube.com/watch?v=eIZmlyucrtk' }, 'A System for Regex Shopping in Path of Exile 2'), ' by CrimsonCasts'])
+    ),
+    h('div', { className: css.row },
+      Button($, {
       label: 'Clear All Data',
       variant: 'secondary',
       onclick: () => {
         if (window.confirm('Clear all builds and reset to default? This cannot be undone.')) clear_data(app$)
       },
-    })
-    ])
+      })),
   ])
