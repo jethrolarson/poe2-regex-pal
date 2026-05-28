@@ -84,12 +84,13 @@ const Selection: Component<{
   const head = h('div', { className: bcss.selection_head }, [
     h('span', { className: sign_cls }, [sel.sign === 'include' ? 'INCLUDE' : 'EXCLUDE']),
     h('span', { className: bcss.concept_label }, [CONCEPT_LABEL.get(sel.concept_id) ?? sel.concept_id]),
-    h('span', { className: ctrl.label }, ['lvl']),
+    h('span', { className: ctrl.label }, 'Select:'),
+    Button(signal, { label: 'All', onclick: () => set_all_overrides(selection$, affix_ids, true) }),
+    Button(signal, { label: 'None', onclick: () => set_all_overrides(selection$, affix_ids, false) }),
+    h('span', { className: ctrl.label }, ['by lvl']),
     LevelSelect(signal, { selection$, which: 'min', levels }),
     h('span', { className: ctrl.label }, ['–']),
     LevelSelect(signal, { selection$, which: 'max', levels }),
-    Button(signal, { label: 'All', onclick: () => set_all_overrides(selection$, affix_ids, true) }),
-    Button(signal, { label: 'None', onclick: () => set_all_overrides(selection$, affix_ids, false) }),
     Button(signal, { label: '×', onclick: remove }),
   ])
   const grid = h(

@@ -31,7 +31,7 @@ export const select = style({
 export const tab_strip = style({
   display: 'flex',
   alignItems: 'baseline',
-  gap: 4,
+  gap: 5,
   flexWrap: 'wrap',
   borderBottom: `1px solid ${gold}`,
   paddingBottom: 0,
@@ -42,7 +42,8 @@ export const tab = style({
   color: interactive_color,
   border: `1px solid ${border}`,
   borderBottomColor: gold,
-  borderRadius: '4px 4px 0 0',
+  borderRadius: '6px 6px 0 0',
+  cornerShape: 'bevel',
   padding: '6px 12px',
   cursor: 'pointer',
   fontSize: 13,
