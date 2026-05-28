@@ -20,6 +20,30 @@ const CURATED: readonly Concept[] = [
   { id: 'res_all', label: 'All Elemental Resistances', includes: has_stat('base_resist_all_elements_%'), any_phrase: 'to all Elemental Resistances' },
 ]
 
+// "+to Level of <category> Skills" is one RePoE group spanning every skill category,
+// but players pick a category for their build. Split it: one concept per gem-level
+// stat, each matched by its shared stat line. [stat suffix, label, phrase]
+const GEM_LEVEL_CATEGORIES: readonly (readonly [string, string, string])[] = [
+  ['attack', 'Attack Gem Level', 'to Level of all Attack Skills'],
+  ['spell', 'Spell Gem Level', 'to Level of all Spell Skills'],
+  ['projectile', 'Projectile Gem Level', 'to Level of all Projectile Skills'],
+  ['melee', 'Melee Gem Level', 'to Level of all Melee Skills'],
+  ['minion', 'Minion Gem Level', 'to Level of all Minion Skills'],
+  ['fire_spell', 'Fire Spell Gem Level', 'to Level of all Fire Spell Skills'],
+  ['cold_spell', 'Cold Spell Gem Level', 'to Level of all Cold Spell Skills'],
+  ['lightning_spell', 'Lightning Spell Gem Level', 'to Level of all Lightning Spell Skills'],
+  ['physical_spell', 'Physical Spell Gem Level', 'to Level of all Physical Spell Skills'],
+  ['chaos_spell', 'Chaos Spell Gem Level', 'to Level of all Chaos Spell Skills'],
+  ['trap', 'Trap Gem Level', 'to Level of all Trap Skill Gems'],
+]
+
+const GEM_LEVEL_CONCEPTS: readonly Concept[] = GEM_LEVEL_CATEGORIES.map(([suffix, label, phrase]) => ({
+  id: `gem_level_${suffix}`,
+  label,
+  includes: has_stat(`${suffix}_skill_gem_level_+`),
+  any_phrase: phrase,
+}))
+
 // Shared stat-line phrase per raw group, for the "whole concept selected" collapse.
 const PHRASE_OVERRIDES: Readonly<Record<string, string>> = {
   IncreasedLife: 'to maximum Life',
@@ -42,7 +66,9 @@ const LABEL_OVERRIDES: Readonly<Record<string, string>> = {
 const group_label = (group: string): string =>
   LABEL_OVERRIDES[group] ?? group.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
 
-const covered_by_curated = (a: Affix): boolean => CURATED.some((c) => c.includes(a))
+const CURATED_ALL: readonly Concept[] = [...CURATED, ...GEM_LEVEL_CONCEPTS]
+
+const covered_by_curated = (a: Affix): boolean => CURATED_ALL.some((c) => c.includes(a))
 
 // One concept per remaining raw group, with affixes already claimed by a curated
 // concept removed — so every affix is reachable through exactly the concept that fits.
@@ -61,7 +87,7 @@ const group_concepts = (): Concept[] => {
     .filter((c) => AFFIXES.some((a) => c.includes(a)))
 }
 
-export const CONCEPTS: readonly Concept[] = [...CURATED, ...group_concepts()]
+export const CONCEPTS: readonly Concept[] = [...CURATED_ALL, ...group_concepts()]
 
 // Curated "common" picks shown when the picker search is empty. Everything else
 // stays reachable via search. Concept ids must exist in CONCEPTS (see test).
@@ -73,6 +99,7 @@ export const FEATURED: readonly FeaturedSection[] = [
   { title: 'Life & Mana', concept_ids: ['group_IncreasedLife', 'group_IncreasedMana', 'group_BaseSpirit'] },
   { title: 'Attributes', concept_ids: ['group_Strength', 'group_Intelligence', 'group_Dexterity'] },
   { title: 'Speed', concept_ids: ['group_MovementVelocity', 'group_IncreasedAttackSpeed', 'group_IncreasedCastSpeed'] },
+  { title: 'Gem Levels', concept_ids: GEM_LEVEL_CONCEPTS.map((c) => c.id) },
   { title: 'Misc', concept_ids: ['group_ItemFoundRarityIncrease'] },
 ]
 

@@ -1,0 +1,66 @@
+# Concept Audit — large concepts & follow-ups
+
+Concepts with **>10 affixes** (deduped by emitted regex token), and what each needs.
+Big lists are a problem because, with no `any_phrase`, a fully-selected concept emits
+one fragment per tier and blows the 250-char budget. The fixes are: add an `any_phrase`
+(one shared stat line), **split** the concept into the sub-things players actually pick,
+or accept it's low-value and leave/deprioritize it.
+
+Generated from the affix data + concept definitions (see `src/models/Concept`,
+`src/models/Regex/Regex_operations.ts`). Re-run the audit if the data is refreshed.
+
+## Done
+
+| Concept | # | Treatment |
+|---|---|---|
+| Flat Armour | 45 | `any_phrase: "to Armour"` |
+| Maximum Life | 14 | `any_phrase: "to maximum Life"` |
+| Flat Energy Shield | 11 | `any_phrase: "to maximum Energy Shield"` |
+| **Increase Socketed Gem Level** | 51 | **split** into 11 per-category concepts (Attack, Spell, Fire/Cold/Lightning/Physical/Chaos Spell, Projectile, Melee, Minion, Trap), each with its own `any_phrase` |
+
+(Flat Evasion + the 5 resistances also carry `any_phrase` but have ≤10 tiers.)
+
+## A. Quick wins — single shape, just add `any_phrase`
+
+Low risk; the safety test (`Concept_operations.test.ts`) verifies the phrase is a
+substring of every member.
+
+| Concept | # | Proposed phrase | Note |
+|---|---|---|---|
+| Maximum Mana | 15 | `to maximum Mana` | |
+| Life Regeneration | 12 | `Life Regeneration per second` | |
+| Stun Threshold | 11 | `to Stun Threshold` | |
+| Increased Physical Damage Reduction Rating | 11 | `to Armour` | ⚠️ text is also "to Armour" — check it isn't redundant with Flat Armour |
+| Fire Damage | 17 | `Fire Damage` | covers "Adds…"/"Extra…" shapes (case-insensitive) |
+| Cold Damage | 16 | `Cold Damage` | |
+| Lightning Damage | 16 | `Lightning Damage` | |
+
+## B. Split per category — one concept hides choices players make separately
+
+Same shape as gem level: a single concept lumps together sub-types a player picks
+between. Split into curated concepts (one `has_stat` predicate each) so each gets a
+clean `any_phrase`.
+
+| Concept | # | Split on |
+|---|---|---|
+| Weapon Damage Type Prefix | 40 | element / damage type |
+| Reduced Ailment Duration | 30 | ailment (chill / freeze / shock / …) |
+| Spell Added Elemental Damage | 28 | element |
+| Weapon Caster Damage Prefix | 16 | Spell vs Trap |
+
+## C. Low value — %-defence is craftable
+
+Design stance: flat defences matter, percent is craftable. Consider deprioritizing or
+hiding this whole family rather than fixing each.
+
+`Defences Percent` (49), `Defence % + Life (mixed)` (36), `…And Mana` (36),
+`Defences Percent And Stun Threshold` (36), `…And Defence Percent` (18).
+
+## D. Review / odd
+
+- **Flat Defence (mixed)** (30) — leftover flat *hybrids* (armour+evasion, evasion+ES);
+  flat is valued, but these may overlap the curated Flat Evasion / Flat ES concepts.
+  Check coverage before touching.
+- **Belt Flask Recovery Rate** (13) — life vs mana recovery; minor split.
+- **Increased Accuracy** (12) — mostly `to Accuracy Rating`, plus a "no Accuracy Penalty
+  from Range" oddball, so no single phrase covers all (would enumerate when fully selected).
