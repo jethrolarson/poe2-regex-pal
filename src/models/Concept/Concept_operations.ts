@@ -63,7 +63,7 @@ const AILMENT_DURATION_CONCEPTS: readonly Concept[] = (
     ['ailment_ignite', 'Reduced Ignite Duration', 'ignite_duration_on_you_+%', 'Ignite Duration on you'],
     ['ailment_poison', 'Reduced Poison Duration', 'poison_duration_on_you_+%', 'Poison Duration on you'],
     ['ailment_bleed', 'Reduced Bleeding Duration', 'bleed_duration_on_you_+%', 'Bleeding Duration on you'],
-  ] as readonly SplitSpec[]
+  ] satisfies readonly SplitSpec[]
 ).map(split_concept)
 
 // Spell-added elemental damage is one group spanning the three elements; players
@@ -73,7 +73,7 @@ const SPELL_ADDED_DAMAGE_CONCEPTS: readonly Concept[] = (
     ['spell_added_cold', 'Added Cold Damage to Spells', 'spell_minimum_added_cold_damage', 'Cold Damage to Spells'],
     ['spell_added_fire', 'Added Fire Damage to Spells', 'spell_minimum_added_fire_damage', 'Fire Damage to Spells'],
     ['spell_added_lightning', 'Added Lightning Damage to Spells', 'spell_minimum_added_lightning_damage', 'Lightning Damage to Spells'],
-  ] as readonly SplitSpec[]
+  ] satisfies readonly SplitSpec[]
 ).map(split_concept)
 
 // Shared stat-line phrase per raw group, for the "whole concept selected" collapse.
