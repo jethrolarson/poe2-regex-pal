@@ -2,6 +2,7 @@
 import { AFFIXES } from '../Affix/Affix'
 import { CONCEPTS } from '../Concept/Concept_operations'
 import { solve, type SolveResult } from './solver'
+import { fragment_for } from './fragment'
 import { type Concept } from '../Concept/Concept_types'
 import type { TabConfig } from '../TabConfig/TabConfig_types'
 import type { Affix } from '../Affix/Affix'
@@ -29,9 +30,19 @@ export const tab_solve = (config: TabConfig): SolveResult =>
 export const concept_affixes = (concept_id: string): readonly Affix[] => {
   const concept = concept_by_id.get(concept_id)
   if (concept === undefined) return []
-  return AFFIXES.filter((a) => concept.includes(a))
+  const sort_key = (a: Affix): number => (a.gen_type === 'implicit' ? 0 : 1)
+  const sorted = AFFIXES.filter((a) => concept.includes(a))
     .slice()
-    .sort((a, b) => a.required_level - b.required_level)
+    .sort((a, b) => sort_key(a) - sort_key(b) || a.required_level - b.required_level)
+  // Collapse affixes that emit the same regex token — e.g. one implicit roll
+  // carried by several item bases (amulet + ring). They are a single choice.
+  const seen = new Set<string>()
+  return sorted.filter((a) => {
+    const token = fragment_for(a)
+    if (seen.has(token)) return false
+    seen.add(token)
+    return true
+  })
 }
 
 const sample_cache = new Map<string, string>()

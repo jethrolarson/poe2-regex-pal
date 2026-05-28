@@ -36,11 +36,15 @@ const AffixCheckbox: Component<{
     bind: { checked: mapRead(selection$.prop('overrides'), (o) => o?.[affix.id] ?? false) },
     on: { change: (e) => set_override(selection$, affix.id, e.currentTarget.checked) },
   })
+  const is_implicit = affix.gen_type === 'implicit'
   const matches = affix.name === '' ? affix.text : `matches "${affix.name}"`
+  // Implicits don't have a tier level of their own; their level belongs to the
+  // item base that carries them, so a tier-style "lvl N" would be misleading.
+  const req = is_implicit ? 'implicit' : `lvl ${affix.required_level}`
   return h('label', { className: bcss.affix_label, title: matches }, [
     box,
     h('span', { className: bcss.affix_text }, [affix.text]),
-    h('span', { className: bcss.req }, [`lvl ${affix.required_level}`]),
+    h('span', { className: bcss.req }, [req]),
   ])
 }
 
