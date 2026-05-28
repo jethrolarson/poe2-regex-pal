@@ -3,16 +3,12 @@ import { AFFIXES } from '../Affix/Affix'
 import { CONCEPTS } from '../Concept/Concept_operations'
 import { affix_fragment, solve_fragments, type Fragment, type SolveResult } from './solver'
 import { fragment_for } from './fragment'
-import { make_phrase_abbreviate } from './abbreviate'
 import { type Concept } from '../Concept/Concept_types'
 import type { TabConfig } from '../TabConfig/TabConfig_types'
 import type { Affix } from '../Affix/Affix'
 import type { ConceptSelection } from '../TabConfig/TabConfig_types'
 
 const concept_by_id: ReadonlyMap<string, Concept> = new Map(CONCEPTS.map((c) => [c.id, c]))
-
-const all_phrases = CONCEPTS.flatMap((c) => (c.any_phrase !== undefined ? [c.any_phrase] : []))
-const phrase_abbreviate = make_phrase_abbreviate(all_phrases)
 
 export const concept_affixes = (concept_id: string): readonly Affix[] => {
   const concept = concept_by_id.get(concept_id)
@@ -42,7 +38,7 @@ const selection_fragments = (selection: ConceptSelection): Fragment[] => {
   const checked = members.filter((a) => selection.overrides[a.id] ?? false)
   if (checked.length === 0) return []
   if (concept.any_phrase !== undefined && checked.length === members.length) {
-    return [{ text: phrase_abbreviate(concept.any_phrase), is_name: false }]
+    return [{ text: concept.any_phrase, is_name: false }]
   }
   return checked.map(affix_fragment)
 }
