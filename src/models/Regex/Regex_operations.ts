@@ -38,7 +38,7 @@ const selection_fragments = (selection: ConceptSelection): Fragment[] => {
   const checked = members.filter((a) => selection.overrides[a.id] ?? false)
   if (checked.length === 0) return []
   if (concept.any_phrase !== undefined && checked.length === members.length) {
-    return [{ text: concept.any_phrase, is_name: false }]
+    return [{ text: concept.any_phrase, is_name: true }]
   }
   return checked.map(affix_fragment)
 }
