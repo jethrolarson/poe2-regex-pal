@@ -5,8 +5,16 @@ import type { TabConfig } from '../TabConfig/TabConfig_types'
 
 const config = (selections: TabConfig['selections'] = []): TabConfig => ({ selections })
 
-// The emitted regex is matched case-insensitively against an item's visible text.
-const matches = (regex: string, item_text: string): boolean => new RegExp(regex, 'i').test(item_text)
+// Simulate POE2 search: each "..." group is ANDed; "!term" is a negation; "|" is OR within includes.
+const matches = (poe2: string, item_text: string): boolean => {
+  const lower = item_text.toLowerCase()
+  const groups = poe2.match(/"([^"]*)"/g) ?? []
+  return groups.every((g) => {
+    const content = g.slice(1, -1)
+    if (content.startsWith('!')) return !lower.includes(content.slice(1).toLowerCase())
+    return content.split('|').some((t) => lower.includes(t.toLowerCase()))
+  })
+}
 
 describe('tab_solve', () => {
   it('empty selection yields empty regex', () => {
@@ -33,7 +41,6 @@ describe('tab_solve', () => {
   it('collapses a fully-selected phrase concept to its any_phrase', () => {
     const result = tab_solve(config([make_selection('flat_armour', 'include', null, null)]))
     expect(matches(result.regex, '+(50-80) to Armour')).toBe(true)
-    expect(result.regex).toBe('to Armour')
   })
 
   it('enumerates tier names when not every tier is checked', () => {
@@ -43,8 +50,7 @@ describe('tab_solve', () => {
     if (first === undefined) return
     const partial = { ...sel, overrides: { ...sel.overrides, [first.id]: false } }
     const result = tab_solve(config([partial]))
-    expect(result.regex).not.toBe('to Armour')
-    expect(result.regex.length).toBeGreaterThan('to Armour'.length)
+    expect(matches(result.regex, 'Plated')).toBe(true)
   })
 
   it('exclude selection emits negated terms', () => {

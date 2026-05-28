@@ -66,10 +66,8 @@ export const solve_fragments = (
 ): SolveResult => {
   const inc = optimize(included).join('|')
   const exc = optimize(excluded)
-  const regex =
-    exc.length > 0
-      ? [`"${inc}"`, ...exc.map((t) => `"!${t}"`)].join(' ')
-      : inc
+  const parts = inc.length > 0 ? [`"${inc}"`, ...exc.map((t) => `"!${t}"`)] : []
+  const regex = parts.join(' ')
   return { regex, length: regex.length, over_budget: regex.length > BUDGET }
 }
 

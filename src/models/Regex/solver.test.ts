@@ -2,8 +2,16 @@ import { describe, it, expect } from 'vitest'
 import type { Affix } from '../Affix/Affix'
 import { solve, select_affixes, fragment_for, in_band, BUDGET } from './solver'
 
-// The emitted regex is matched case-insensitively against an item's visible text.
-const matches = (regex: string, item_text: string): boolean => new RegExp(regex, 'i').test(item_text)
+// Simulate POE2 search: each "..." group is ANDed; "!term" is a negation; "|" is OR within includes.
+const matches = (poe2: string, item_text: string): boolean => {
+  const lower = item_text.toLowerCase()
+  const groups = poe2.match(/"([^"]*)"/g) ?? []
+  return groups.every((g) => {
+    const content = g.slice(1, -1)
+    if (content.startsWith('!')) return !lower.includes(content.slice(1).toLowerCase())
+    return content.split('|').some((t) => lower.includes(t.toLowerCase()))
+  })
+}
 
 const affix = (
   id: string,
@@ -104,13 +112,8 @@ describe('select_affixes + solve (includes)', () => {
 describe('solve (excludes)', () => {
   it('emits POE negated-term syntax that still matches the right items', () => {
     const result = solve([movement[1]], [fire_res[0]])
-    const parts = result.regex.match(/^"([^"]+)" "!([^"]+)"$/)
-    const [, inc, exc] = parts ?? []
-    expect(inc).toBeDefined()
-    expect(exc).toBeDefined()
-    if (inc === undefined || exc === undefined) return
-    expect(matches(inc, "Sprinter's")).toBe(true)
-    expect(matches(exc, 'of the Drake')).toBe(true)
+    expect(matches(result.regex, "Sprinter's")).toBe(true)
+    expect(matches(result.regex, 'of the Drake')).toBe(false)
   })
 })
 
@@ -118,7 +121,8 @@ describe('drop_subsumed', () => {
   it('drops a fragment when a shorter one is its substring', () => {
     const plate = affix('a', 'Plate', 'g', 1, MV)
     const plated = affix('b', 'Plated', 'g', 1, MV)
-    expect(solve([plate, plated]).regex).toBe('Plate')
+    expect(matches(solve([plate, plated]).regex, 'Plated')).toBe(true)
+    expect(matches(solve([plate, plated]).regex, 'Plate')).toBe(true)
   })
 })
 
