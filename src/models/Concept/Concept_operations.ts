@@ -104,6 +104,7 @@ const PHRASE_OVERRIDES: Readonly<Record<string, string>> = {
 const LABEL_OVERRIDES: Readonly<Record<string, string>> = {
   BaseLocalDefences: 'Flat Defence (mixed)',
   BaseLocalDefencesAndLife: 'Defence % + Life (mixed)',
+  BaseLocalDefencesAndMana: 'Defence % + Mana (mixed)',
   MovementVelocity: 'Movement Speed',
   IncreasedLife: 'Maximum Life',
   IncreasedMana: 'Maximum Mana',
