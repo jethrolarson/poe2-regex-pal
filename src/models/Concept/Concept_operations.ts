@@ -47,7 +47,13 @@ const GEM_LEVEL_CONCEPTS: readonly Concept[] = GEM_LEVEL_CATEGORIES.map(([suffix
 // Shared stat-line phrase per raw group, for the "whole concept selected" collapse.
 const PHRASE_OVERRIDES: Readonly<Record<string, string>> = {
   IncreasedLife: 'to maximum Life',
+  IncreasedMana: 'to maximum Mana',
   MovementVelocity: 'increased Movement Speed',
+  StunThreshold: 'to Stun Threshold',
+  IncreasedPhysicalDamageReductionRating: 'to Armour',
+  FireDamage: 'Fire Damage',
+  ColdDamage: 'Cold Damage',
+  LightningDamage: 'Lightning Damage',
 }
 
 // Friendlier names for groups whose PascalCase prettifies poorly. Extend as needed.

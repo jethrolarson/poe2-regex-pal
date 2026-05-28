@@ -17,23 +17,19 @@ Generated from the affix data + concept definitions (see `src/models/Concept`,
 | Maximum Life | 14 | `any_phrase: "to maximum Life"` |
 | Flat Energy Shield | 11 | `any_phrase: "to maximum Energy Shield"` |
 | **Increase Socketed Gem Level** | 51 | **split** into 11 per-category concepts (Attack, Spell, Fire/Cold/Lightning/Physical/Chaos Spell, Projectile, Melee, Minion, Trap), each with its own `any_phrase` |
+| Maximum Mana | 15 | `any_phrase: "to maximum Mana"` |
+| Stun Threshold | 11 | `any_phrase: "to Stun Threshold"` |
+| Increased Physical Damage Reduction Rating | 11 | `any_phrase: "to Armour"` (global +Armour; distinct stat from Flat Armour's local one, so not redundant) |
+| Fire Damage | 17 | `any_phrase: "Fire Damage"` |
+| Cold Damage | 16 | `any_phrase: "Cold Damage"` |
+| Lightning Damage | 16 | `any_phrase: "Lightning Damage"` |
 
 (Flat Evasion + the 5 resistances also carry `any_phrase` but have ≤10 tiers.)
 
 ## A. Quick wins — single shape, just add `any_phrase`
 
-Low risk; the safety test (`Concept_operations.test.ts`) verifies the phrase is a
-substring of every member.
-
-| Concept | # | Proposed phrase | Note |
-|---|---|---|---|
-| Maximum Mana | 15 | `to maximum Mana` | |
-| Life Regeneration | 12 | `Life Regeneration per second` | |
-| Stun Threshold | 11 | `to Stun Threshold` | |
-| Increased Physical Damage Reduction Rating | 11 | `to Armour` | ⚠️ text is also "to Armour" — check it isn't redundant with Flat Armour |
-| Fire Damage | 17 | `Fire Damage` | covers "Adds…"/"Extra…" shapes (case-insensitive) |
-| Cold Damage | 16 | `Cold Damage` | |
-| Lightning Damage | 16 | `Lightning Damage` | |
+_All cleared — see Done._ Bucket A is empty: every single-shape concept now carries a phrase.
+The safety test (`Concept_operations.test.ts`) verifies each phrase is a substring of every member.
 
 ## B. Split per category — one concept hides choices players make separately
 
@@ -64,3 +60,6 @@ hiding this whole family rather than fixing each.
 - **Belt Flask Recovery Rate** (13) — life vs mana recovery; minor split.
 - **Increased Accuracy** (12) — mostly `to Accuracy Rating`, plus a "no Accuracy Penalty
   from Range" oddball, so no single phrase covers all (would enumerate when fully selected).
+- **Life Regeneration** (12) — grab-bag: flat regen, `% increased Life Regeneration rate`,
+  and a stray Strength-scaled fire-damage affix. No shared phrase; needs a split (flat regen
+  vs % regen) or leave as-is.
