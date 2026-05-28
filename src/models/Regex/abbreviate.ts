@@ -44,3 +44,12 @@ export const make_abbreviate = (corpus: readonly string[]): ((fragment: string) 
 }
 
 export const abbreviate = make_abbreviate(matchable_corpus)
+
+// Abbreviate a curated phrase, excluding the concept's own affix stat texts from
+// the corpus so substrings of the phrase that only appear in those texts aren't
+// blocked. Safe: any shorter form still uniquely identifies the stat in all other items.
+export const abbreviate_phrase = (phrase: string, own_texts: readonly string[]): string => {
+  const own_lower = new Set(own_texts.map((t) => t.toLowerCase()))
+  const corpus = matchable_corpus.filter((entry) => !own_lower.has(entry))
+  return make_abbreviate(corpus)(phrase)
+}

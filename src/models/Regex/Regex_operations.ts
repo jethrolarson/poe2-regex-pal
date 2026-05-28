@@ -3,6 +3,7 @@ import { AFFIXES } from '../Affix/Affix'
 import { CONCEPTS } from '../Concept/Concept_operations'
 import { affix_fragment, solve_fragments, type Fragment, type SolveResult } from './solver'
 import { fragment_for } from './fragment'
+import { abbreviate_phrase } from './abbreviate'
 import { type Concept } from '../Concept/Concept_types'
 import type { TabConfig } from '../TabConfig/TabConfig_types'
 import type { Affix } from '../Affix/Affix'
@@ -38,7 +39,8 @@ const selection_fragments = (selection: ConceptSelection): Fragment[] => {
   const checked = members.filter((a) => selection.overrides[a.id] ?? false)
   if (checked.length === 0) return []
   if (concept.any_phrase !== undefined && checked.length === members.length) {
-    return [{ text: concept.any_phrase, is_name: false }]
+    const own_texts = members.map((a) => a.text)
+    return [{ text: abbreviate_phrase(concept.any_phrase, own_texts), is_name: false }]
   }
   return checked.map(affix_fragment)
 }
