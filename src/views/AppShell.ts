@@ -79,7 +79,7 @@ const SheetHeader: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
 
 /** Build-name field: keyed on active_build_id so it refreshes on switch but keeps focus while typing. */
 const SheetName: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
-  bindView($, read_active_build(app$), (region, build) =>
+  bindView($, app$.prop('active_build_id'), (region) =>
     hx(
       'label',
       { signal: region, props: { className: shell.sheet_name } },
@@ -90,7 +90,7 @@ const SheetName: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
             className: shell.sheet_name_input,
             name: 'sheet_name',
             type: 'text',
-            value: build?.name ?? '',
+            value: read_active_build(app$).get()?.name ?? '',
             placeholder: 'Untitled sheet',
           },
           attrs: { 'aria-label': 'Sheet name' },
@@ -103,17 +103,19 @@ const SheetName: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
 
 /** Tab-name field: keyed on active_tab_id (not tab content) so typing doesn't lose focus. */
 const TabName: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
-  bindView($, read_active_tab(app$), (region, tab) => tab === undefined
-    ? h('span', { hidden: true })
-    : h('div', { className: css.row }, [
-      h('span', { className: css.label }, ['Tab name:']),
-      hx('input', {
-        signal: region,
-        props: { className: css.name_input, type: 'text', value: tab.name, placeholder: 'Tab name' },
-        on: { input: (e) => rename_active_tab(app$, e.currentTarget.value) },
-      }),
-    ])
-  )
+  bindView($, app$.prop('active_tab_id'), (region) => {
+    const tab = read_active_tab(app$).get()
+    return tab === undefined
+      ? h('span', { hidden: true })
+      : h('div', { className: css.row }, [
+        h('span', { className: css.label }, ['Name:']),
+        hx('input', {
+          signal: region,
+          props: { className: css.name_input, type: 'text', value: tab.name, placeholder: 'Tab name' },
+          on: { change: (e) => rename_active_tab(app$, e.currentTarget.value) },
+        }),
+      ])
+  })
 
 /** Tab strip uses `renderWhen` at call site; inner `bindView` updates rows without rebuilding static chrome. */
 const TabStrip: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
@@ -143,15 +145,29 @@ export const AppShell: Component<{
     TabStrip($, { app$ }),
     TabName($, { app$ }),
     BuilderDeck($, { app$, on_regex_copied }),
-    h('div', { className: css.row },
-      h('em', {}, ['Inspired by ', h('a', { href: 'https://www.youtube.com/watch?v=eIZmlyucrtk' }, 'A System for Regex Shopping in Path of Exile 2'), ' by CrimsonCasts'])
-    ),
-    h('div', { className: css.row },
-      Button($, {
-      label: 'Clear All Data',
-      variant: 'secondary',
-      onclick: () => {
-        if (window.confirm('Clear all builds and reset to default? This cannot be undone.')) clear_data(app$)
-      },
-      })),
+    h('footer', { className: shell.footer }, [
+      h('div', { className: shell.footer_links }, [
+        h('a', { className: shell.footer_link, href: 'https://github.com/jethrolarson/poe2-regex-pal', target: '_blank', rel: 'noopener noreferrer' }, ['GitHub']),
+        h('span', { className: shell.footer_sep }, ['·']),
+        h('a', { className: shell.footer_link, href: 'https://github.com/jethrolarson/poe2-regex-pal/blob/main/LICENSE', target: '_blank', rel: 'noopener noreferrer' }, ['MIT License']),
+      ]),
+      h('div', { className: shell.footer_credit }, [
+        'Inspired by ',
+        h('a', { className: shell.footer_link, href: 'https://www.youtube.com/watch?v=eIZmlyucrtk', target: '_blank', rel: 'noopener noreferrer' }, ['A System for Regex Shopping in Path of Exile 2']),
+        ' by CrimsonCasts',
+      ]),
+      h('div', { className: shell.footer_credit }, [
+        'Affix data from ',
+        h('a', { className: shell.footer_link, href: 'https://repoe-fork.github.io/poe2/', target: '_blank', rel: 'noopener noreferrer' }, ['RePoE Fork']),
+      ]),
+      h('div', { className: css.row },
+        Button($, {
+          label: 'Clear All Data',
+          variant: 'secondary',
+          onclick: () => {
+            if (window.confirm('Clear all builds and reset to default? This cannot be undone.')) clear_data(app$)
+          },
+        }),
+      ),
+    ]),
   ])

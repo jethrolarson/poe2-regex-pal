@@ -103,3 +103,25 @@ export const sheet_name_edit = style({
     },
   },
 })
+export const footer = style({
+  marginTop: 24,
+  paddingTop: 14,
+  borderTop: `1px solid ${border}`,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10,
+  fontSize: 13,
+  color: muted,
+})
+
+export const footer_links = style({ display: 'flex', alignItems: 'center', gap: 8 })
+
+export const footer_sep = style({ color: muted, opacity: 0.5 })
+
+export const footer_link = style({
+  color: interactive_color,
+  textDecoration: 'none',
+  ':hover': { textDecoration: 'underline' },
+})
+
+export const footer_credit = style({ fontStyle: 'italic', color: muted })
