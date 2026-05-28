@@ -23,7 +23,9 @@ const to_gen_type = (g: string): GenType => {
     throw new Error(`Unexpected gen_type: ${g}`)
 }
 
-export const AFFIXES: readonly Affix[] = raw_affixes.map((r) => ({
+export const AFFIXES: readonly Affix[] = raw_affixes
+  .filter((r) => !r.name.startsWith('[DNT'))
+  .map((r) => ({
     id: r.id,
     name: r.name,
     text: r.text,
@@ -31,4 +33,4 @@ export const AFFIXES: readonly Affix[] = raw_affixes.map((r) => ({
     required_level: r.required_level,
     gen_type: to_gen_type(r.gen_type),
     stats: r.stats,
-}))
+  }))
