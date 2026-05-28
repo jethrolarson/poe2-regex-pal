@@ -1,6 +1,8 @@
 import type { Affix } from '../Affix/Affix'
 import type { Concept } from '../Concept/Concept_types'
 import type { LevelRange } from './Regex_types'
+import { fragment_for, is_name_fragment } from './fragment'
+import { abbreviate } from './abbreviate'
 
 export const BUDGET = 250
 
@@ -10,36 +12,37 @@ export type SolveResult = {
   readonly over_budget: boolean
 }
 
-// "of the Kiln" -> "Kiln", "of Magma" -> "Magma". Possessive prefixes ("Sprinter's")
-// are left whole. Safe: the item text still contains the stripped token.
-const distinctive_token = (name: string): string =>
-  name.replace(/^of the /i, '').replace(/^of /i, '')
+export { fragment_for }
 
-// Implicits have no affix name, so we match their stat line. Roll values are
-// stripped because items show the rolled number (+12), not the range (10-15).
-const descriptive_phrase = (text: string): string =>
-  text
-    .replace(/\n/g, ' ')
-    .replace(/[+-]?\(?\d[\d.,\s–-]*\)?%?/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-export const fragment_for = (affix: Affix): string =>
-  affix.name.length > 0 ? distinctive_token(affix.name) : descriptive_phrase(affix.text)
+type Fragment = { readonly text: string; readonly is_name: boolean }
 
 // Keep a minimal set: if one fragment is a substring of another, the shorter one
 // already matches everything the longer one would, so drop the longer.
-const drop_subsumed = (fragments: readonly string[]): string[] => {
-  const unique = [...new Set(fragments)].sort((a, b) => a.length - b.length)
-  const kept: string[] = []
+const drop_subsumed = (fragments: readonly Fragment[]): Fragment[] => {
+  const unique = [...new Map(fragments.map((f) => [f.text, f])).values()].sort(
+    (a, b) => a.text.length - b.text.length,
+  )
+  const kept: Fragment[] = []
   for (const f of unique) {
-    if (!kept.some((k) => f.includes(k))) kept.push(f)
+    if (!kept.some((k) => f.text.includes(k.text))) kept.push(f)
   }
   return kept
 }
 
-const fragments_of = (affixes: readonly Affix[]): string[] =>
-  drop_subsumed(affixes.map(fragment_for).filter((f) => f.length > 0))
+// Name fragments shrink to their shortest corpus-unique substring. Implicit
+// descriptive phrases are left whole: their roll numbers are stripped mid-string,
+// so an arbitrary substring could straddle a gap and stop matching the item.
+// Subsume on full words first (so e.g. "Plate" absorbs "Plated"), then abbreviate
+// the survivors, then subsume again to fold any newly-redundant abbreviations.
+const fragments_of = (affixes: readonly Affix[]): string[] => {
+  const tagged = affixes
+    .map((a): Fragment => ({ text: fragment_for(a), is_name: is_name_fragment(a) }))
+    .filter((f) => f.text.length > 0)
+  const abbreviated = drop_subsumed(tagged).map(
+    (f): Fragment => ({ text: f.is_name ? abbreviate(f.text) : f.text, is_name: f.is_name }),
+  )
+  return drop_subsumed(abbreviated).map((f) => f.text)
+}
 
 export const in_band = (affix: Affix, range: LevelRange): boolean =>
   affix.required_level >= (range.min ?? 0) &&

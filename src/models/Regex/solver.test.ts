@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import type { Affix } from './data/types'
+import type { Affix } from '../Affix/Affix'
 import { solve, select_affixes, fragment_for, in_band, BUDGET } from './solver'
+
+// The emitted regex is matched case-insensitively against an item's visible text.
+const matches = (regex: string, item_text: string): boolean => new RegExp(regex, 'i').test(item_text)
 
 const affix = (
   id: string,
@@ -36,8 +39,6 @@ const fire_res: Affix[] = [
 
 const movement_concept = { id: 'mv', label: 'Movement Speed', includes: (a: Affix) => a.group === 'MovementVelocity' }
 const fire_res_concept = { id: 'fr', label: 'Fire Resistance', includes: (a: Affix) => a.stats.some((s) => s.id === FR) }
-
-const tokens = (regex: string): string[] => regex.split('|').sort()
 
 describe('fragment_for', () => {
   it('strips leading "of the" / "of"', () => {
@@ -78,25 +79,38 @@ describe('in_band', () => {
 
 describe('select_affixes + solve (includes)', () => {
   it('floor picks the qualifying named tiers', () => {
-    const picked = select_affixes(movement, movement_concept, { min: 16, max: 46 })
-    expect(tokens(solve(picked).regex)).toEqual(["Gazelle's", "Sprinter's", "Stallion's"])
+    const re = solve(select_affixes(movement, movement_concept, { min: 16, max: 46 })).regex
+    expect(matches(re, "Sprinter's")).toBe(true)
+    expect(matches(re, "Stallion's")).toBe(true)
+    expect(matches(re, "Gazelle's")).toBe(true)
+    expect(matches(re, "Runner's")).toBe(false) // req 1, below the floor
   })
 
   it('any-floor includes every tier (no false negatives)', () => {
-    const picked = select_affixes(movement, movement_concept, { max: 46 })
-    expect(tokens(solve(picked).regex)).toEqual(["Gazelle's", "Runner's", "Sprinter's", "Stallion's"])
+    const re = solve(select_affixes(movement, movement_concept, { max: 46 })).regex
+    for (const name of ["Runner's", "Sprinter's", "Stallion's", "Gazelle's"]) {
+      expect(matches(re, name)).toBe(true)
+    }
   })
 
   it('fire res floor uses stripped names across the band', () => {
-    const picked = select_affixes(fire_res, fire_res_concept, { min: 36 })
-    expect(tokens(solve(picked).regex)).toEqual(['Furnace', 'Kiln'])
+    const re = solve(select_affixes(fire_res, fire_res_concept, { min: 36 })).regex
+    expect(matches(re, 'of the Kiln')).toBe(true)
+    expect(matches(re, 'of the Furnace')).toBe(true)
+    expect(matches(re, 'of the Drake')).toBe(false) // req 24, below the floor
   })
 })
 
 describe('solve (excludes)', () => {
-  it('emits POE negated-term syntax', () => {
+  it('emits POE negated-term syntax that still matches the right items', () => {
     const result = solve([movement[1]], [fire_res[0]])
-    expect(result.regex).toBe('"Sprinter\'s" "!Drake"')
+    const parts = result.regex.match(/^"([^"]+)" "!([^"]+)"$/)
+    const [, inc, exc] = parts ?? []
+    expect(inc).toBeDefined()
+    expect(exc).toBeDefined()
+    if (inc === undefined || exc === undefined) return
+    expect(matches(inc, "Sprinter's")).toBe(true)
+    expect(matches(exc, 'of the Drake')).toBe(true)
   })
 })
 
@@ -110,10 +124,19 @@ describe('drop_subsumed', () => {
 
 describe('budget', () => {
   it('flags over_budget past 250 chars', () => {
-    // Fixed-length distinct names so none subsumes another.
-    const many = Array.from({ length: 40 }, (_, i) =>
-      affix(`a${i}`, `Frag${i.toString().padStart(2, '0')}`, 'g', 1, MV),
-    )
+    // Nameless implicits aren't abbreviated, so their distinct phrases stack up.
+    // Fixed-length two-letter codes (no digits) keep them distinct and unsubsumable.
+    const az = 'abcdefghijklmnopqrstuvwxyz'
+    const code = (i: number): string => `${az[Math.floor(i / 26)] ?? 'z'}${az[i % 26] ?? 'z'}`
+    const many: Affix[] = Array.from({ length: 40 }, (_, i) => ({
+      id: `imp${i}`,
+      name: '',
+      text: `Wibble ${code(i)} Quux`,
+      group: 'g',
+      required_level: 1,
+      gen_type: 'implicit',
+      stats: [],
+    }))
     const result = solve(many)
     expect(result.length).toBeGreaterThan(BUDGET)
     expect(result.over_budget).toBe(true)

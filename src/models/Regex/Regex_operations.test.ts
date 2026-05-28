@@ -5,17 +5,20 @@ import type { TabConfig } from '../TabConfig/TabConfig_types'
 
 const config = (selections: TabConfig['selections'] = []): TabConfig => ({ selections })
 
+// The emitted regex is matched case-insensitively against an item's visible text.
+const matches = (regex: string, item_text: string): boolean => new RegExp(regex, 'i').test(item_text)
+
 describe('tab_solve', () => {
   it('empty selection yields empty regex', () => {
     expect(tab_solve(config()).regex).toBe('')
   })
 
-  it('a stamped range includes only the in-range tier names', () => {
-    const result = tab_solve(config([make_selection('group_MovementVelocity', 'include', null, 33)]))
+  it('a stamped range matches the in-range tier names but not the out-of-range one', () => {
+    const re = tab_solve(config([make_selection('group_MovementVelocity', 'include', null, 33)])).regex
     // Runner's(1), Sprinter's(16), Stallion's(33) are <= 33; Gazelle's(46) is not.
-    expect(result.regex).toContain("Sprinter's")
-    expect(result.regex).toContain("Stallion's")
-    expect(result.regex).not.toContain("Gazelle's")
+    expect(matches(re, "Sprinter's")).toBe(true)
+    expect(matches(re, "Stallion's")).toBe(true)
+    expect(matches(re, "Gazelle's")).toBe(false)
   })
 
   it('a per-affix override flips an out-of-range affix in', () => {
@@ -24,7 +27,7 @@ describe('tab_solve', () => {
     if (!gazelle) return
     const base = make_selection('group_MovementVelocity', 'include', null, 33)
     const sel = { ...base, overrides: { ...base.overrides, [gazelle.id]: true } }
-    expect(tab_solve(config([sel])).regex).toContain("Gazelle's")
+    expect(matches(tab_solve(config([sel])).regex, "Gazelle's")).toBe(true)
   })
 
   it('exclude selection emits negated terms', () => {

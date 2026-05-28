@@ -10,6 +10,7 @@ const MODS_URL = 'https://repoe-fork.github.io/poe2/mods.min.json'
 const BASES_URL = 'https://repoe-fork.github.io/poe2/base_items.min.json'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUT = resolve(__dirname, '../src/models/Affix/affix_data.json')
+const OUT_BASES = resolve(__dirname, '../src/models/Affix/base_names.json')
 
 type GenType = 'prefix' | 'suffix' | 'implicit'
 
@@ -23,7 +24,7 @@ type RawMod = {
   groups: string[]
   stats: RawStat[]
 }
-type RawBase = { release_state: string; implicits: string[] }
+type RawBase = { name: string; release_state: string; implicits: string[] }
 
 type Affix = {
   id: string
@@ -56,8 +57,11 @@ const main = async (): Promise<void> => {
   // Implicit mods are referenced by released base items; they roll on normal gear
   // and are searchable even though their generation_type isn't prefix/suffix.
   const implicit_ids = new Set<string>()
+  const base_names = new Set<string>()
   for (const base of Object.values(bases)) {
-    if (base.release_state === 'released') for (const id of base.implicits) implicit_ids.add(id)
+    if (base.release_state !== 'released') continue
+    for (const id of base.implicits) implicit_ids.add(id)
+    if (typeof base.name === 'string' && base.name.length > 0) base_names.add(base.name)
   }
 
   const affixes: Affix[] = Object.entries(mods)
@@ -82,6 +86,10 @@ const main = async (): Promise<void> => {
   writeFileSync(OUT, JSON.stringify(affixes, null, 0) + '\n')
   const implicits = affixes.filter((a) => a.gen_type === 'implicit').length
   console.log(`Wrote ${affixes.length} affixes (${implicits} implicit) -> ${OUT}`)
+
+  const sorted_bases = [...base_names].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+  writeFileSync(OUT_BASES, JSON.stringify(sorted_bases, null, 0) + '\n')
+  console.log(`Wrote ${sorted_bases.length} base names -> ${OUT_BASES}`)
 }
 
 void main()
