@@ -38,6 +38,18 @@ describe('concepts', () => {
     expect(missing).toEqual([])
   })
 
+  it('every any_phrase is a substring of all its concept members (no false negatives)', () => {
+    const offenders: string[] = []
+    for (const c of CONCEPTS) {
+      if (c.any_phrase === undefined) continue
+      const phrase = c.any_phrase.toLowerCase()
+      for (const a of AFFIXES.filter((x) => c.includes(x))) {
+        if (!a.text.toLowerCase().includes(phrase)) offenders.push(`${c.id}:${a.id}`)
+      }
+    }
+    expect(offenders).toEqual([])
+  })
+
   it('curated affixes are removed from their raw group concept (no duplication)', () => {
     const bld = CONCEPTS.find((c) => c.id === 'group_BaseLocalDefences')
     if (bld) {

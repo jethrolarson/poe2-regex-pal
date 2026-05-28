@@ -30,6 +30,22 @@ describe('tab_solve', () => {
     expect(matches(tab_solve(config([sel])).regex, "Gazelle's")).toBe(true)
   })
 
+  it('collapses a fully-selected phrase concept to its any_phrase', () => {
+    const result = tab_solve(config([make_selection('flat_armour', 'include', null, null)]))
+    expect(result.regex).toBe('to Armour')
+  })
+
+  it('enumerates tier names when not every tier is checked', () => {
+    const sel = make_selection('flat_armour', 'include', null, null)
+    const first = concept_affixes('flat_armour')[0]
+    expect(first).toBeDefined()
+    if (first === undefined) return
+    const partial = { ...sel, overrides: { ...sel.overrides, [first.id]: false } }
+    const result = tab_solve(config([partial]))
+    expect(result.regex).not.toBe('to Armour')
+    expect(result.regex.length).toBeGreaterThan('to Armour'.length)
+  })
+
   it('exclude selection emits negated terms', () => {
     const result = tab_solve(
       config([

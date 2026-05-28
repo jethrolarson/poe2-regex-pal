@@ -10,19 +10,26 @@ const has_stat =
 // Curated concepts that split mechanic-based RePoE groups (e.g. BaseLocalDefences,
 // which bundles flat armour/evasion/ES) into the concepts players actually think in.
 const CURATED: readonly Concept[] = [
-  { id: 'flat_armour', label: 'Flat Armour', includes: has_stat('local_base_physical_damage_reduction_rating') },
-  { id: 'flat_evasion', label: 'Flat Evasion', includes: has_stat('base_evasion_rating') },
-  { id: 'flat_energy_shield', label: 'Flat Energy Shield', includes: has_stat('base_maximum_energy_shield') },
-  { id: 'res_fire', label: 'Fire Resistance', includes: has_stat('base_fire_damage_resistance_%') },
-  { id: 'res_cold', label: 'Cold Resistance', includes: has_stat('base_cold_damage_resistance_%') },
-  { id: 'res_lightning', label: 'Lightning Resistance', includes: has_stat('base_lightning_damage_resistance_%') },
-  { id: 'res_chaos', label: 'Chaos Resistance', includes: has_stat('base_chaos_damage_resistance_%') },
-  { id: 'res_all', label: 'All Elemental Resistances', includes: has_stat('base_resist_all_elements_%') },
+  { id: 'flat_armour', label: 'Flat Armour', includes: has_stat('local_base_physical_damage_reduction_rating'), any_phrase: 'to Armour' },
+  { id: 'flat_evasion', label: 'Flat Evasion', includes: has_stat('base_evasion_rating'), any_phrase: 'to Evasion Rating' },
+  { id: 'flat_energy_shield', label: 'Flat Energy Shield', includes: has_stat('base_maximum_energy_shield'), any_phrase: 'to maximum Energy Shield' },
+  { id: 'res_fire', label: 'Fire Resistance', includes: has_stat('base_fire_damage_resistance_%'), any_phrase: 'to Fire Resistance' },
+  { id: 'res_cold', label: 'Cold Resistance', includes: has_stat('base_cold_damage_resistance_%'), any_phrase: 'to Cold Resistance' },
+  { id: 'res_lightning', label: 'Lightning Resistance', includes: has_stat('base_lightning_damage_resistance_%'), any_phrase: 'to Lightning Resistance' },
+  { id: 'res_chaos', label: 'Chaos Resistance', includes: has_stat('base_chaos_damage_resistance_%'), any_phrase: 'to Chaos Resistance' },
+  { id: 'res_all', label: 'All Elemental Resistances', includes: has_stat('base_resist_all_elements_%'), any_phrase: 'to all Elemental Resistances' },
 ]
+
+// Shared stat-line phrase per raw group, for the "whole concept selected" collapse.
+const PHRASE_OVERRIDES: Readonly<Record<string, string>> = {
+  IncreasedLife: 'to maximum Life',
+  MovementVelocity: 'increased Movement Speed',
+}
 
 // Friendlier names for groups whose PascalCase prettifies poorly. Extend as needed.
 const LABEL_OVERRIDES: Readonly<Record<string, string>> = {
   BaseLocalDefences: 'Flat Defence (mixed)',
+  BaseLocalDefencesAndLife: 'Defence % + Life (mixed)',
   MovementVelocity: 'Movement Speed',
   IncreasedLife: 'Maximum Life',
   IncreasedMana: 'Maximum Mana',
@@ -42,13 +49,15 @@ const covered_by_curated = (a: Affix): boolean => CURATED.some((c) => c.includes
 const group_concepts = (): Concept[] => {
   const groups = [...new Set(AFFIXES.map((a) => a.group))].sort()
   return groups
-    .map(
-      (g): Concept => ({
+    .map((g): Concept => {
+      const phrase = PHRASE_OVERRIDES[g]
+      return {
         id: `group_${g}`,
         label: group_label(g),
         includes: (a: Affix) => a.group === g && !covered_by_curated(a),
-      }),
-    )
+        ...(phrase !== undefined ? { any_phrase: phrase } : {}),
+      }
+    })
     .filter((c) => AFFIXES.some((a) => c.includes(a)))
 }
 

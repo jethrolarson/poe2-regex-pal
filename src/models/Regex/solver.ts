@@ -14,7 +14,14 @@ export type SolveResult = {
 
 export { fragment_for }
 
-type Fragment = { readonly text: string; readonly is_name: boolean }
+// A matchable term plus whether it came from an affix name (abbreviatable) or a
+// stat-line phrase (left whole — roll-number gaps make substrings unsafe).
+export type Fragment = { readonly text: string; readonly is_name: boolean }
+
+export const affix_fragment = (a: Affix): Fragment => ({
+  text: fragment_for(a),
+  is_name: is_name_fragment(a),
+})
 
 // Keep a minimal set: if one fragment is a substring of another, the shorter one
 // already matches everything the longer one would, so drop the longer.
@@ -29,16 +36,13 @@ const drop_subsumed = (fragments: readonly Fragment[]): Fragment[] => {
   return kept
 }
 
-// Name fragments shrink to their shortest corpus-unique substring. Implicit
-// descriptive phrases are left whole: their roll numbers are stripped mid-string,
-// so an arbitrary substring could straddle a gap and stop matching the item.
-// Subsume on full words first (so e.g. "Plate" absorbs "Plated"), then abbreviate
-// the survivors, then subsume again to fold any newly-redundant abbreviations.
-const fragments_of = (affixes: readonly Affix[]): string[] => {
-  const tagged = affixes
-    .map((a): Fragment => ({ text: fragment_for(a), is_name: is_name_fragment(a) }))
-    .filter((f) => f.text.length > 0)
-  const abbreviated = drop_subsumed(tagged).map(
+// Name fragments shrink to their shortest corpus-unique substring. Phrase
+// fragments are left whole. Subsume on full words first (so e.g. "Plate" absorbs
+// "Plated"), then abbreviate the survivors, then subsume again to fold any
+// newly-redundant abbreviations.
+const optimize = (fragments: readonly Fragment[]): string[] => {
+  const present = fragments.filter((f) => f.text.length > 0)
+  const abbreviated = drop_subsumed(present).map(
     (f): Fragment => ({ text: f.is_name ? abbreviate(f.text) : f.text, is_name: f.is_name }),
   )
   return drop_subsumed(abbreviated).map((f) => f.text)
@@ -54,17 +58,22 @@ export const select_affixes = (
   range: LevelRange,
 ): Affix[] => affixes.filter((a) => concept.includes(a) && in_band(a, range))
 
-// Builds the in-game search string. Includes are OR'd; excludes are separate
-// negated terms: `"inc1|inc2" "!exc1"`. With no excludes, just the OR'd includes.
-export const solve = (
-  included: readonly Affix[],
-  excluded: readonly Affix[] = [],
+// Builds the in-game search string from already-collected fragments. Includes are
+// OR'd; excludes are separate negated terms: `"inc1|inc2" "!exc1"`.
+export const solve_fragments = (
+  included: readonly Fragment[],
+  excluded: readonly Fragment[] = [],
 ): SolveResult => {
-  const inc = fragments_of(included).join('|')
-  const exc = fragments_of(excluded)
+  const inc = optimize(included).join('|')
+  const exc = optimize(excluded)
   const regex =
     exc.length > 0
       ? [`"${inc}"`, ...exc.map((t) => `"!${t}"`)].join(' ')
       : inc
   return { regex, length: regex.length, over_budget: regex.length > BUDGET }
 }
+
+export const solve = (
+  included: readonly Affix[],
+  excluded: readonly Affix[] = [],
+): SolveResult => solve_fragments(included.map(affix_fragment), excluded.map(affix_fragment))

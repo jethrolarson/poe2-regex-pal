@@ -1,7 +1,7 @@
 
 import { AFFIXES } from '../Affix/Affix'
 import { CONCEPTS } from '../Concept/Concept_operations'
-import { solve, type SolveResult } from './solver'
+import { affix_fragment, solve_fragments, type Fragment, type SolveResult } from './solver'
 import { fragment_for } from './fragment'
 import { type Concept } from '../Concept/Concept_types'
 import type { TabConfig } from '../TabConfig/TabConfig_types'
@@ -9,23 +9,6 @@ import type { Affix } from '../Affix/Affix'
 import type { ConceptSelection } from '../TabConfig/TabConfig_types'
 
 const concept_by_id: ReadonlyMap<string, Concept> = new Map(CONCEPTS.map((c) => [c.id, c]))
-
-// Checked affixes for a selection: concept members whose override is true.
-const affixes_of = (selection: ConceptSelection): Affix[] => {
-  const concept = concept_by_id.get(selection.concept_id)
-  if (concept === undefined) return []
-  return AFFIXES.filter((a) => concept.includes(a) && (selection.overrides[a.id] ?? false))
-}
-
-const dedupe = (affixes: readonly Affix[]): Affix[] => [
-  ...new Map(affixes.map((a) => [a.id, a])).values(),
-]
-
-const collect = (config: TabConfig, sign: ConceptSelection['sign']): Affix[] =>
-  dedupe(config.selections.filter((s) => s.sign === sign).flatMap(affixes_of))
-
-export const tab_solve = (config: TabConfig): SolveResult =>
-  solve(collect(config, 'include'), collect(config, 'exclude'))
 
 export const concept_affixes = (concept_id: string): readonly Affix[] => {
   const concept = concept_by_id.get(concept_id)
@@ -44,6 +27,27 @@ export const concept_affixes = (concept_id: string): readonly Affix[] => {
     return true
   })
 }
+
+// Fragments contributed by one selection. When the concept defines an any_phrase
+// and every one of its tiers is checked, that single phrase matches them all, so
+// emit it instead of every tier name. Otherwise emit a fragment per checked tier.
+const selection_fragments = (selection: ConceptSelection): Fragment[] => {
+  const concept = concept_by_id.get(selection.concept_id)
+  if (concept === undefined) return []
+  const members = concept_affixes(selection.concept_id)
+  const checked = members.filter((a) => selection.overrides[a.id] ?? false)
+  if (checked.length === 0) return []
+  if (concept.any_phrase !== undefined && checked.length === members.length) {
+    return [{ text: concept.any_phrase, is_name: false }]
+  }
+  return checked.map(affix_fragment)
+}
+
+const collect = (config: TabConfig, sign: ConceptSelection['sign']): Fragment[] =>
+  config.selections.filter((s) => s.sign === sign).flatMap(selection_fragments)
+
+export const tab_solve = (config: TabConfig): SolveResult =>
+  solve_fragments(collect(config, 'include'), collect(config, 'exclude'))
 
 const sample_cache = new Map<string, string>()
 export const concept_sample = (concept_id: string): string => {
