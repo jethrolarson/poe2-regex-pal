@@ -30,9 +30,10 @@ describe('tab_solve', () => {
     expect(matches(tab_solve(config([sel])).regex, "Gazelle's")).toBe(true)
   })
 
-  it('collapses a fully-selected phrase concept to its any_phrase', () => {
+  it('collapses a fully-selected phrase concept and matches armour items', () => {
     const result = tab_solve(config([make_selection('flat_armour', 'include', null, null)]))
-    expect(result.regex).toBe('to Armour')
+    expect(matches(result.regex, '+(50-80) to Armour')).toBe(true)
+    expect(result.regex.length).toBeLessThan('to Armour'.length)
   })
 
   it('enumerates tier names when not every tier is checked', () => {
@@ -42,8 +43,7 @@ describe('tab_solve', () => {
     if (first === undefined) return
     const partial = { ...sel, overrides: { ...sel.overrides, [first.id]: false } }
     const result = tab_solve(config([partial]))
-    expect(result.regex).not.toBe('to Armour')
-    expect(result.regex.length).toBeGreaterThan('to Armour'.length)
+    expect(matches(result.regex, 'Plated')).toBe(true)
   })
 
   it('exclude selection emits negated terms', () => {

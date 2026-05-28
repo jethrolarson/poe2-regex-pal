@@ -44,3 +44,8 @@ export const make_abbreviate = (corpus: readonly string[]): ((fragment: string) 
 }
 
 export const abbreviate = make_abbreviate(matchable_corpus)
+
+// Abbreviate a curated phrase against a set of peer phrases — finds the shortest
+// substring of each phrase that doesn't appear in any other phrase in the set.
+export const make_phrase_abbreviate = (phrases: readonly string[]): ((phrase: string) => string) =>
+  make_abbreviate(phrases.map((p) => p.toLowerCase()))
