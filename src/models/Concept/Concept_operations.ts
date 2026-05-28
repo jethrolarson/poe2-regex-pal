@@ -44,6 +44,38 @@ const GEM_LEVEL_CONCEPTS: readonly Concept[] = GEM_LEVEL_CATEGORIES.map(([suffix
   any_phrase: phrase,
 }))
 
+// Curated concept built from a single discriminating stat id. [id, label, stat, phrase]
+type SplitSpec = readonly [string, string, string, string]
+const split_concept = ([id, label, stat, phrase]: SplitSpec): Concept => ({
+  id,
+  label,
+  includes: has_stat(stat),
+  any_phrase: phrase,
+})
+
+// "Reduced Ailment Duration on you" is one RePoE group covering every ailment, but
+// a player wards against specific ailments. Split per ailment stat.
+const AILMENT_DURATION_CONCEPTS: readonly Concept[] = (
+  [
+    ['ailment_chill', 'Reduced Chill Duration', 'chill_duration_+%', 'Chill Duration on you'],
+    ['ailment_shock', 'Reduced Shock Duration', 'shock_duration_+%', 'Shock duration on you'],
+    ['ailment_freeze', 'Reduced Freeze Duration', 'freeze_duration_+%', 'Freeze Duration on you'],
+    ['ailment_ignite', 'Reduced Ignite Duration', 'ignite_duration_on_you_+%', 'Ignite Duration on you'],
+    ['ailment_poison', 'Reduced Poison Duration', 'poison_duration_on_you_+%', 'Poison Duration on you'],
+    ['ailment_bleed', 'Reduced Bleeding Duration', 'bleed_duration_on_you_+%', 'Bleeding Duration on you'],
+  ] as readonly SplitSpec[]
+).map(split_concept)
+
+// Spell-added elemental damage is one group spanning the three elements; players
+// pick the element matching their spells. Split per element (keyed on the min stat).
+const SPELL_ADDED_DAMAGE_CONCEPTS: readonly Concept[] = (
+  [
+    ['spell_added_cold', 'Added Cold Damage to Spells', 'spell_minimum_added_cold_damage', 'Cold Damage to Spells'],
+    ['spell_added_fire', 'Added Fire Damage to Spells', 'spell_minimum_added_fire_damage', 'Fire Damage to Spells'],
+    ['spell_added_lightning', 'Added Lightning Damage to Spells', 'spell_minimum_added_lightning_damage', 'Lightning Damage to Spells'],
+  ] as readonly SplitSpec[]
+).map(split_concept)
+
 // Shared stat-line phrase per raw group, for the "whole concept selected" collapse.
 const PHRASE_OVERRIDES: Readonly<Record<string, string>> = {
   IncreasedLife: 'to maximum Life',
@@ -72,7 +104,12 @@ const LABEL_OVERRIDES: Readonly<Record<string, string>> = {
 const group_label = (group: string): string =>
   LABEL_OVERRIDES[group] ?? group.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
 
-const CURATED_ALL: readonly Concept[] = [...CURATED, ...GEM_LEVEL_CONCEPTS]
+const CURATED_ALL: readonly Concept[] = [
+  ...CURATED,
+  ...GEM_LEVEL_CONCEPTS,
+  ...AILMENT_DURATION_CONCEPTS,
+  ...SPELL_ADDED_DAMAGE_CONCEPTS,
+]
 
 const covered_by_curated = (a: Affix): boolean => CURATED_ALL.some((c) => c.includes(a))
 
@@ -106,6 +143,8 @@ export const FEATURED: readonly FeaturedSection[] = [
   { title: 'Attributes', concept_ids: ['group_Strength', 'group_Intelligence', 'group_Dexterity'] },
   { title: 'Speed', concept_ids: ['group_MovementVelocity', 'group_IncreasedAttackSpeed', 'group_IncreasedCastSpeed'] },
   { title: 'Gem Levels', concept_ids: GEM_LEVEL_CONCEPTS.map((c) => c.id) },
+  { title: 'Added Spell Damage', concept_ids: SPELL_ADDED_DAMAGE_CONCEPTS.map((c) => c.id) },
+  { title: 'Ailment Duration', concept_ids: AILMENT_DURATION_CONCEPTS.map((c) => c.id) },
   { title: 'Misc', concept_ids: ['group_ItemFoundRarityIncrease'] },
 ]
 

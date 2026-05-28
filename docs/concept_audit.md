@@ -23,6 +23,8 @@ Generated from the affix data + concept definitions (see `src/models/Concept`,
 | Fire Damage | 17 | `any_phrase: "Fire Damage"` |
 | Cold Damage | 16 | `any_phrase: "Cold Damage"` |
 | Lightning Damage | 16 | `any_phrase: "Lightning Damage"` |
+| **Reduced Ailment Duration** | 30 | **split** into 6 per-ailment concepts (Chill/Shock/Freeze/Ignite/Poison/Bleeding Duration on you), each with its own `any_phrase` |
+| **Spell Added Elemental Damage** | 28 | **split** into 3 per-element concepts (Added Cold/Fire/Lightning Damage to Spells), each with its own `any_phrase` |
 
 (Flat Evasion + the 5 resistances also carry `any_phrase` but have ≤10 tiers.)
 
@@ -33,16 +35,20 @@ The safety test (`Concept_operations.test.ts`) verifies each phrase is a substri
 
 ## B. Split per category — one concept hides choices players make separately
 
-Same shape as gem level: a single concept lumps together sub-types a player picks
-between. Split into curated concepts (one `has_stat` predicate each) so each gets a
-clean `any_phrase`.
+The two clean splits (Reduced Ailment Duration, Spell Added Elemental Damage) are
+**done** — see above. The remaining two are *not* clean mechanical splits and need a
+design decision before touching:
 
-| Concept | # | Split on |
-|---|---|---|
-| Weapon Damage Type Prefix | 40 | element / damage type |
-| Reduced Ailment Duration | 30 | ailment (chill / freeze / shock / …) |
-| Spell Added Elemental Damage | 28 | element |
-| Weapon Caster Damage Prefix | 16 | Spell vs Trap |
+- **Weapon Damage Type Prefix** (40) — heterogeneous, not "element/damage type" as first
+  thought. It bundles 7 stat shapes: added cold/fire/lightning/physical damage, %
+  physical, **attack speed**, and **crit chance**. The last two overlap existing concepts
+  (`group_IncreasedAttackSpeed`, crit). A by-stat split would create 7 concepts and
+  duplicate attack-speed/crit. Decide: split only the added-damage stats? merge the
+  speed/crit into the existing concepts? leave as a catch-all "weapon prefix"?
+- **Weapon Caster Damage Prefix** (16) — Spell Damage and Trap Damage affixes share the
+  **same** stat id (`spell_damage_+%`), so they can't be split by `has_stat`. Splitting
+  would require a text predicate (matching "Spell Damage" vs "Trap Damage"). Low value;
+  probably leave it.
 
 ## C. Low value — %-defence is craftable
 
