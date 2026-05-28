@@ -66,6 +66,18 @@ const AILMENT_DURATION_CONCEPTS: readonly Concept[] = (
   ] satisfies readonly SplitSpec[]
 ).map(split_concept)
 
+// Weapon % damage by type — chaos/cold/fire/lightning/spell-physical are independent
+// player choices. Each affix has exactly one stat so splitting is clean.
+const WEAPON_DAMAGE_TYPE_CONCEPTS: readonly Concept[] = (
+  [
+    ['weapon_dmg_chaos', 'Chaos Damage %', 'chaos_damage_+%', 'increased Chaos Damage'],
+    ['weapon_dmg_cold', 'Cold Damage %', 'cold_damage_+%', 'increased Cold Damage'],
+    ['weapon_dmg_fire', 'Fire Damage %', 'fire_damage_+%', 'increased Fire Damage'],
+    ['weapon_dmg_lightning', 'Lightning Damage %', 'lightning_damage_+%', 'increased Lightning Damage'],
+    ['weapon_dmg_spell_phys', 'Spell Physical Damage %', 'spell_physical_damage_+%', 'increased Spell Physical Damage'],
+  ] satisfies readonly SplitSpec[]
+).map(split_concept)
+
 // Spell-added elemental damage is one group spanning the three elements; players
 // pick the element matching their spells. Split per element (keyed on the min stat).
 const SPELL_ADDED_DAMAGE_CONCEPTS: readonly Concept[] = (
@@ -109,6 +121,7 @@ const CURATED_ALL: readonly Concept[] = [
   ...GEM_LEVEL_CONCEPTS,
   ...AILMENT_DURATION_CONCEPTS,
   ...SPELL_ADDED_DAMAGE_CONCEPTS,
+  ...WEAPON_DAMAGE_TYPE_CONCEPTS,
 ]
 
 const covered_by_curated = (a: Affix): boolean => CURATED_ALL.some((c) => c.includes(a))
@@ -144,6 +157,7 @@ export const FEATURED: readonly FeaturedSection[] = [
   { title: 'Speed', concept_ids: ['group_MovementVelocity', 'group_IncreasedAttackSpeed', 'group_IncreasedCastSpeed'] },
   { title: 'Gem Levels', concept_ids: GEM_LEVEL_CONCEPTS.map((c) => c.id) },
   { title: 'Added Spell Damage', concept_ids: SPELL_ADDED_DAMAGE_CONCEPTS.map((c) => c.id) },
+  { title: 'Weapon Damage %', concept_ids: WEAPON_DAMAGE_TYPE_CONCEPTS.map((c) => c.id) },
   { title: 'Ailment Duration', concept_ids: AILMENT_DURATION_CONCEPTS.map((c) => c.id) },
   { title: 'Misc', concept_ids: ['group_ItemFoundRarityIncrease'] },
 ]
