@@ -8,13 +8,14 @@ import type { TabConfig, ConceptSelection } from '../models/TabConfig/TabConfig_
 import type { Affix } from '../models/Affix/Affix'
 import { concept_affixes, tab_solve } from '../models/Regex/Regex_operations'
 import { CONCEPTS } from '../models/Concept/Concept_operations'
+import type { Concept } from '../models/Concept/Concept_types'
 import * as bcss from './Builder.css'
 import * as ctrl from './Controls.css'
 import { active_tab_config_acc, open_picker } from '../models/AppState/AppState_operations'
 import { apply_level_range, set_all_overrides, set_override } from '../models/TabConfig/TabConfig_operations'
 import { read_has_active_tab } from '../models/AppState/AppState_reads'
 
-const CONCEPT_LABEL = new Map(CONCEPTS.map((c) => [c.id, c.label]))
+const CONCEPT_MAP = new Map<string, Concept>(CONCEPTS.map((c) => [c.id, c]))
 
 const AFFIX_COLUMNS = 2
 
@@ -81,13 +82,28 @@ const Selection: Component<{
   readonly remove: () => void
 }> = (signal, { selection$, remove }) => {
   const sel = selection$.get()
+  const concept = CONCEPT_MAP.get(sel.concept_id)
+  const sign_cls = sel.sign === 'include' ? bcss.sign_include : bcss.sign_exclude
+  const sign_label = sel.sign === 'include' ? 'INCLUDE' : 'EXCLUDE'
+  const label = concept?.label ?? sel.concept_id
+
+  if (concept?.kind === 'regex') {
+    return h('div', { className: bcss.selection }, [
+      h('div', { className: bcss.selection_head }, [
+        h('span', { className: sign_cls }, [sign_label]),
+        h('span', { className: bcss.concept_label }, [label]),
+        h('span', { className: bcss.pseudo_tag }, ['PSEUDO']),
+        Button(signal, { label: '×', size: 'small', onclick: remove }),
+      ]),
+    ])
+  }
+
   const affixes = concept_affixes(sel.concept_id)
   const affix_ids = affixes.map((a) => a.id)
   const levels = [...new Set(affixes.map((a) => a.required_level))].sort((a, b) => a - b)
-  const sign_cls = sel.sign === 'include' ? bcss.sign_include : bcss.sign_exclude
   const head = h('div', { className: bcss.selection_head }, [
-    h('span', { className: sign_cls }, [sel.sign === 'include' ? 'INCLUDE' : 'EXCLUDE']),
-    h('span', { className: bcss.concept_label }, [CONCEPT_LABEL.get(sel.concept_id) ?? sel.concept_id]),
+    h('span', { className: sign_cls }, [sign_label]),
+    h('span', { className: bcss.concept_label }, [label]),
     h('span', { className: ctrl.label }, 'Select:'),
     Button(signal, { label: 'All', size: 'small', onclick: () => set_all_overrides(selection$, affix_ids, true) }),
     Button(signal, { label: 'None', size: 'small', onclick: () => set_all_overrides(selection$, affix_ids, false) }),

@@ -66,6 +66,7 @@ export const affix_text = style({
 })
 
 export const req = style({ color: muted, fontSize: 11, whiteSpace: 'nowrap' })
+export const pseudo_tag = style({ color: muted, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' })
 
 export const output = style({
 })

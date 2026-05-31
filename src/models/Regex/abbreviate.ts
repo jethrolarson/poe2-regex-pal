@@ -53,3 +53,11 @@ export const abbreviate_phrase = (phrase: string, own_texts: readonly string[]):
   const corpus = matchable_corpus.filter((entry) => !own_lower.has(entry))
   return make_abbreviate(corpus)(phrase)
 }
+
+// Abbreviate a freeform phrase by excluding any corpus entry that contains the
+// phrase as a substring — i.e. stat texts that are "about" this phrase.
+export const abbreviate_freeform = (phrase: string): string => {
+  const lower = phrase.toLowerCase()
+  const corpus = matchable_corpus.filter((entry) => !entry.includes(lower))
+  return make_abbreviate(corpus)(phrase)
+}

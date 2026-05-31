@@ -75,6 +75,7 @@ export const row = style({
 })
 export const row_label = style({ color: parchment, fontSize: 13, flex: '0 0 190px' })
 export const row_effect = style({ color: muted, fontSize: 12, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' })
+export const pseudo_tag = style({ color: muted, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', flex: '0 0 46px' })
 
 export const empty = style({ color: muted, fontSize: 13, padding: 12 })
 

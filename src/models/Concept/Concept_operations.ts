@@ -1,5 +1,5 @@
 import type { Affix } from '../Affix/Affix'
-import type { Concept } from './Concept_types'
+import type { AffixConcept, Concept, RegexConcept } from './Concept_types'
 import { AFFIXES } from '../Affix/Affix'
 
 const has_stat =
@@ -9,15 +9,15 @@ const has_stat =
 
 // Curated concepts that split mechanic-based RePoE groups (e.g. BaseLocalDefences,
 // which bundles flat armour/evasion/ES) into the concepts players actually think in.
-const CURATED: readonly Concept[] = [
-  { id: 'flat_armour', label: 'Flat Armour', includes: has_stat('local_base_physical_damage_reduction_rating'), any_phrase: 'to Armour' },
-  { id: 'flat_evasion', label: 'Flat Evasion', includes: has_stat('base_evasion_rating'), any_phrase: 'to Evasion Rating' },
-  { id: 'flat_energy_shield', label: 'Flat Energy Shield', includes: has_stat('base_maximum_energy_shield'), any_phrase: 'to maximum Energy Shield' },
-  { id: 'res_fire', label: 'Fire Resistance', includes: has_stat('base_fire_damage_resistance_%'), any_phrase: 'to Fire Resistance' },
-  { id: 'res_cold', label: 'Cold Resistance', includes: has_stat('base_cold_damage_resistance_%'), any_phrase: 'to Cold Resistance' },
-  { id: 'res_lightning', label: 'Lightning Resistance', includes: has_stat('base_lightning_damage_resistance_%'), any_phrase: 'to Lightning Resistance' },
-  { id: 'res_chaos', label: 'Chaos Resistance', includes: has_stat('base_chaos_damage_resistance_%'), any_phrase: 'to Chaos Resistance' },
-  { id: 'res_all', label: 'All Elemental Resistances', includes: has_stat('base_resist_all_elements_%'), any_phrase: 'to all Elemental Resistances' },
+const CURATED: readonly AffixConcept[] = [
+  { kind: 'affix', id: 'flat_armour', label: 'Flat Armour', includes: has_stat('local_base_physical_damage_reduction_rating'), any_phrase: 'to Armour' },
+  { kind: 'affix', id: 'flat_evasion', label: 'Flat Evasion', includes: has_stat('base_evasion_rating'), any_phrase: 'to Evasion Rating' },
+  { kind: 'affix', id: 'flat_energy_shield', label: 'Flat Energy Shield', includes: has_stat('base_maximum_energy_shield'), any_phrase: 'to maximum Energy Shield' },
+  { kind: 'affix', id: 'res_fire', label: 'Fire Resistance', includes: has_stat('base_fire_damage_resistance_%'), any_phrase: 'to Fire Resistance' },
+  { kind: 'affix', id: 'res_cold', label: 'Cold Resistance', includes: has_stat('base_cold_damage_resistance_%'), any_phrase: 'to Cold Resistance' },
+  { kind: 'affix', id: 'res_lightning', label: 'Lightning Resistance', includes: has_stat('base_lightning_damage_resistance_%'), any_phrase: 'to Lightning Resistance' },
+  { kind: 'affix', id: 'res_chaos', label: 'Chaos Resistance', includes: has_stat('base_chaos_damage_resistance_%'), any_phrase: 'to Chaos Resistance' },
+  { kind: 'affix', id: 'res_all', label: 'All Elemental Resistances', includes: has_stat('base_resist_all_elements_%'), any_phrase: 'to all Elemental Resistances' },
 ]
 
 // "+to Level of <category> Skills" is one RePoE group spanning every skill category,
@@ -37,7 +37,8 @@ const GEM_LEVEL_CATEGORIES: readonly (readonly [string, string, string])[] = [
   ['trap', 'Trap Gem Level', 'to Level of all Trap Skill Gems'],
 ]
 
-const GEM_LEVEL_CONCEPTS: readonly Concept[] = GEM_LEVEL_CATEGORIES.map(([suffix, label, phrase]) => ({
+const GEM_LEVEL_CONCEPTS: readonly AffixConcept[] = GEM_LEVEL_CATEGORIES.map(([suffix, label, phrase]) => ({
+  kind: 'affix' as const,
   id: `gem_level_${suffix}`,
   label,
   includes: has_stat(`${suffix}_skill_gem_level_+`),
@@ -46,7 +47,8 @@ const GEM_LEVEL_CONCEPTS: readonly Concept[] = GEM_LEVEL_CATEGORIES.map(([suffix
 
 // Curated concept built from a single discriminating stat id. [id, label, stat, phrase]
 type SplitSpec = readonly [string, string, string, string]
-const split_concept = ([id, label, stat, phrase]: SplitSpec): Concept => ({
+const split_concept = ([id, label, stat, phrase]: SplitSpec): AffixConcept => ({
+  kind: 'affix',
   id,
   label,
   includes: has_stat(stat),
@@ -129,12 +131,13 @@ const covered_by_curated = (a: Affix): boolean => CURATED_ALL.some((c) => c.incl
 
 // One concept per remaining raw group, with affixes already claimed by a curated
 // concept removed — so every affix is reachable through exactly the concept that fits.
-const group_concepts = (): Concept[] => {
+const group_concepts = (): AffixConcept[] => {
   const groups = [...new Set(AFFIXES.map((a) => a.group))].sort()
   return groups
-    .map((g): Concept => {
+    .map((g): AffixConcept => {
       const phrase = PHRASE_OVERRIDES[g]
       return {
+        kind: 'affix',
         id: `group_${g}`,
         label: group_label(g),
         includes: (a: Affix) => a.group === g && !covered_by_curated(a),
@@ -144,13 +147,34 @@ const group_concepts = (): Concept[] => {
     .filter((c) => AFFIXES.some((a) => c.includes(a)))
 }
 
-export const CONCEPTS: readonly Concept[] = [...CURATED_ALL, ...group_concepts()]
+// Pseudo concepts aggregate multiple stat groups into a single on/off toggle.
+// Fragments are readable phrases abbreviated at solve time against the full corpus.
+const PSEUDO_CONCEPTS: readonly RegexConcept[] = [
+  // Per-element: individual resistance + all elemental (since all res contributes to each)
+  { kind: 'regex', id: 'pseudo_res_fire', label: 'Fire Resistance (any source)', fragments: ['to Fire Resistance', 'to all Elemental Resistances'] },
+  { kind: 'regex', id: 'pseudo_res_cold', label: 'Cold Resistance (any source)', fragments: ['to Cold Resistance', 'to all Elemental Resistances'] },
+  { kind: 'regex', id: 'pseudo_res_lightning', label: 'Lightning Resistance (any source)', fragments: ['to Lightning Resistance', 'to all Elemental Resistances'] },
+  // Any elemental resistance at all
+  { kind: 'regex', id: 'pseudo_res_any', label: 'Any Elemental Resistance', fragments: ['to Fire Resistance', 'to Cold Resistance', 'to Lightning Resistance', 'to all Elemental Resistances'] },
+  // Defences by type — each phrase covers flat + % sources for that defence
+  { kind: 'regex', id: 'pseudo_armour', label: 'Armour', fragments: ['to Armour'] },
+  { kind: 'regex', id: 'pseudo_evasion', label: 'Evasion', fragments: ['to Evasion Rating'] },
+  { kind: 'regex', id: 'pseudo_energy_shield', label: 'Energy Shield', fragments: ['to maximum Energy Shield'] },
+  // Spell damage — gem levels + added elemental to spells + spell physical %
+  { kind: 'regex', id: 'pseudo_spell_damage', label: 'Spell Damage', fragments: ['to Level of all Spell Skills', 'Damage to Spells', 'Spell Physical Damage'] },
+]
+
+export const CONCEPTS: readonly Concept[] = [...CURATED_ALL, ...group_concepts(), ...PSEUDO_CONCEPTS]
 
 // Curated "common" picks shown when the picker search is empty. Everything else
 // stays reachable via search. Concept ids must exist in CONCEPTS (see test).
 export type FeaturedSection = { readonly title: string; readonly concept_ids: readonly string[] }
 
 export const FEATURED: readonly FeaturedSection[] = [
+  {
+    title: 'Pseudo',
+    concept_ids: ['pseudo_res_fire', 'pseudo_res_cold', 'pseudo_res_lightning', 'pseudo_res_any', 'pseudo_armour', 'pseudo_evasion', 'pseudo_energy_shield', 'pseudo_spell_damage'],
+  },
   { title: 'Resistances', concept_ids: ['res_fire', 'res_cold', 'res_lightning', 'res_chaos', 'res_all'] },
   { title: 'Flat Defence', concept_ids: ['flat_armour', 'flat_evasion', 'flat_energy_shield'] },
   { title: 'Life & Mana', concept_ids: ['group_IncreasedLife', 'group_IncreasedMana', 'group_BaseSpirit'] },

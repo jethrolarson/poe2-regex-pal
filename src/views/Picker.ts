@@ -56,6 +56,7 @@ const ConceptRow: Component<{
     },
     [
       h('span', { className: css.row_label }, [concept.label]),
+      h('span', { className: css.pseudo_tag }, [concept.kind === 'regex' ? 'pseudo' : '']),
       h('span', { className: css.row_effect }, [concept_sample(concept.id)]),
     ],
   )
