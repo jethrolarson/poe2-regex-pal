@@ -1,6 +1,7 @@
 import { bindView, h, hx, type Component } from '@fun-land/fun-web'
-import { type FunState, derive } from '@fun-land/fun-state'
+import { type FunState } from '@fun-land/fun-state'
 import type { AppState } from '../models/AppState/AppState_types'
+import type { TabConfig } from '../models/TabConfig/TabConfig_types'
 import { Button } from '../components/Button'
 import {
   add_new_build,
@@ -14,23 +15,11 @@ import {
   select_tab,
   switch_build,
 } from '../models/AppState/AppState_operations'
-import { read_build_bar, read_active_tab, read_active_build } from '../models/AppState/AppState_reads'
+import { read_build_bar, read_active_tab, read_active_build, read_tab_strip } from '../models/AppState/AppState_reads'
 import { export_build } from '../models/AppState/AppState_persistance'
 import { BuilderDeck } from './Builder'
 import * as shell from './AppShell.css'
 import * as css from './Controls.css'
-
-/** Tab strip layout: reacts when build list / active pointers change */
-export const read_tab_strip = (app$: FunState<AppState>) =>
-  derive(
-    app$.prop('builds'),
-    app$.prop('active_build_id'),
-    app$.prop('active_tab_id'),
-    (builds, active_build_id, active_tab_id) => ({
-      build: builds.find((b) => b.id === active_build_id),
-      active_tab_id,
-    }),
-  )
 
 /** Build selector reacts only to builds + active selection; unrelated app edits keep this subtree mounted. */
 const SheetHeader: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
@@ -137,14 +126,16 @@ const TabStrip: Component<{ app$: FunState<AppState> }> = ($, { app$ }) =>
 
 export const AppShell: Component<{
   app$: FunState<AppState>
+  active_config$: FunState<TabConfig>
+  open_picker: () => void
   on_regex_copied: () => void
-}> = ($, { app$, on_regex_copied }) =>
+}> = ($, { app$, active_config$, open_picker, on_regex_copied }) =>
   h('div', { className: shell.app }, [
     h('h1', { className: shell.heading }, ['POE2 Regex Pal']),
     SheetHeader($, { app$ }),
     TabStrip($, { app$ }),
     TabName($, { app$ }),
-    BuilderDeck($, { app$, on_regex_copied }),
+    BuilderDeck($, { app$, active_config$, open_picker, on_regex_copied }),
     h('footer', { className: shell.footer }, [
       h('div', { className: shell.footer_links }, [
         h('a', { className: shell.footer_link, href: 'https://github.com/jethrolarson/poe2-regex-pal', target: '_blank', rel: 'noopener noreferrer' }, ['GitHub']),

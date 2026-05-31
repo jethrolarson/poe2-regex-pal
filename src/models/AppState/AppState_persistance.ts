@@ -23,7 +23,6 @@ export const load_state = (fallback: AppState): AppState => {
             builds: data.builds,
             active_build_id: data.active_build_id,
             active_tab_id: data.active_tab_id,
-            picker_open: false,
         }
     } catch {
         return fallback

@@ -1,6 +1,6 @@
 import { h, type Component } from '@fun-land/fun-web'
-import { type FunState } from '@fun-land/fun-state'
-import type { ConceptInclusion } from '../models/TabConfig/TabConfig_types'
+import { funState, type FunState } from '@fun-land/fun-state'
+import type { ConceptInclusion, TabConfig } from '../models/TabConfig/TabConfig_types'
 import * as css from './App.css'
 import { add_selection } from '../models/AppState/AppState_operations'
 import { is_concept_added } from '../models/AppState/AppState_reads'
@@ -9,17 +9,22 @@ import { Picker } from './Picker'
 import { AppShell } from './AppShell'
 import { type AppState } from '../models/AppState/AppState_types'
 
-export type AppViewProps = { app$: FunState<AppState> }
+export type AppViewProps = {
+  app$: FunState<AppState>
+  active_config$: FunState<TabConfig>
+}
 
-export const App: Component<AppViewProps> = (signal, { app$ }) => {
+export const App: Component<AppViewProps> = (signal, { app$, active_config$ }) => {
   const toast$ = create_toast()
-  const on_choose = (concept_id: string, sign: ConceptInclusion): void => add_selection(app$, concept_id, sign)
-  const is_added = (concept_id: string): boolean => is_concept_added(app$, concept_id).get()
+  const picker_open$ = funState(false)
+  const on_choose = (concept_id: string, sign: ConceptInclusion): void => add_selection(active_config$, concept_id, sign)
+  const is_added = (concept_id: string): boolean => is_concept_added(active_config$, concept_id).get()
   const on_regex_copied = (): void => show_toast(toast$, 'Regex copied')
+  const open_picker = (): void => picker_open$.set(true)
 
   return h('div', { className: css.root }, [
-    AppShell(signal, { app$, on_regex_copied }),
-    Picker(signal, { app$, on_choose, is_added }),
+    AppShell(signal, { app$, active_config$, open_picker, on_regex_copied }),
+    Picker(signal, { picker_open$, on_choose, is_added }),
     ToastHost(signal, { toast$ }),
   ])
 }

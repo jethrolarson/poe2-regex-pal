@@ -1,5 +1,5 @@
 import type { Affix } from '../Affix/Affix'
-import type { Concept } from '../Concept/Concept_types'
+import type { AffixConcept } from '../Concept/Concept_types'
 import type { LevelRange } from './Regex_types'
 import { fragment_for, is_name_fragment } from './fragment'
 import { abbreviate } from './abbreviate'
@@ -54,7 +54,7 @@ export const in_band = (affix: Affix, range: LevelRange): boolean =>
 
 export const select_affixes = (
   affixes: readonly Affix[],
-  concept: Concept,
+  concept: AffixConcept,
   range: LevelRange,
 ): Affix[] => affixes.filter((a) => concept.includes(a) && in_band(a, range))
 

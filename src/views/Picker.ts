@@ -1,6 +1,5 @@
 import { h, hx, bindView, bindClass, type Component } from '@fun-land/fun-web'
-import { derive, funState, mapRead, merge, type FunState } from '@fun-land/fun-state'
-import type { AppState } from '../models/AppState/AppState_types'
+import { derive, funState, mapRead, type FunState } from '@fun-land/fun-state'
 import type { Concept } from '../models/Concept/Concept_types'
 import { CONCEPTS, FEATURED } from '../models/Concept/Concept_operations'
 import { search_concepts, concept_sample } from '../models/Regex/Regex_operations'
@@ -19,16 +18,15 @@ const initial_picker_fields: PickerFields = { query: '', sign: 'include', view: 
 const ALL_CONCEPTS = [...CONCEPTS].sort((a, b) => a.label.localeCompare(b.label))
 
 type Props = {
-  readonly app$: FunState<AppState>
+  readonly picker_open$: FunState<boolean>
   readonly on_choose: (concept_id: string, sign: ConceptInclusion) => void
   readonly is_added: (concept_id: string) => boolean
 }
 
 const concept_by_id = new Map(CONCEPTS.map((c) => [c.id, c]))
 
-/** Close modal (`AppState`) and reset local picker fields together */
-const close_modal = (app$: FunState<AppState>, fields$: FunState<PickerFields>): void => {
-  merge(app$)({ picker_open: false })
+const close_modal = (picker_open$: FunState<boolean>, fields$: FunState<PickerFields>): void => {
+  picker_open$.set(false)
   fields$.set(initial_picker_fields)
 }
 
@@ -37,11 +35,11 @@ type FieldProps = {
 }
 
 const ConceptRow: Component<{
-  readonly app$: FunState<AppState>
+  readonly picker_open$: FunState<boolean>
   readonly fields$: FunState<PickerFields>
   readonly on_choose: Props['on_choose']
   readonly concept: Concept
-}> = (signal, { app$, fields$, on_choose, concept }) =>
+}> = (signal, { picker_open$, fields$, on_choose, concept }) =>
   hx(
     'div',
     {
@@ -50,7 +48,7 @@ const ConceptRow: Component<{
       on: {
         click: () => {
           on_choose(concept.id, fields$.get().sign)
-          close_modal(app$, fields$)
+          close_modal(picker_open$, fields$)
         },
       },
     },
@@ -78,7 +76,7 @@ const BrowseToggle: Component<FieldProps & { readonly view: PickerFields['view']
 type BodyProps = Props & FieldProps
 
 const FeaturedBody: Component<BodyProps> = (signal, body_props) => {
-  const { fields$, app$, on_choose, is_added } = body_props
+  const { fields$, picker_open$, on_choose, is_added } = body_props
   const available = (c: Concept): boolean => !is_added(c.id)
   const sections = FEATURED.map((section) => ({
     title: section.title,
@@ -92,7 +90,7 @@ const FeaturedBody: Component<BodyProps> = (signal, body_props) => {
       h('div', {}, [
         h('div', { className: css.section_title }, [section.title]),
         ...section.concepts.map((c) =>
-          ConceptRow(signal, { app$, fields$, on_choose, concept: c }),
+          ConceptRow(signal, { picker_open$, fields$, on_choose, concept: c }),
         ),
       ]),
     ),
@@ -101,23 +99,23 @@ const FeaturedBody: Component<BodyProps> = (signal, body_props) => {
 }
 
 const BrowseAllBody: Component<BodyProps> = (signal, body_props) => {
-  const { fields$, app$, on_choose, is_added } = body_props
+  const { fields$, picker_open$, on_choose, is_added } = body_props
   const available = (c: Concept): boolean => !is_added(c.id)
   return h('div', {}, [
     BrowseToggle(signal, { fields$, view: 'all' }),
     ...ALL_CONCEPTS.filter(available).map((c) =>
-      ConceptRow(signal, { app$, fields$, on_choose, concept: c }),
+      ConceptRow(signal, { picker_open$, fields$, on_choose, concept: c }),
     ),
   ])
 }
 
-const SearchHits: Component<BodyProps & { readonly matches: readonly Concept[] }> = (signal, { matches, app$, fields$, on_choose }) =>
+const SearchHits: Component<BodyProps & { readonly matches: readonly Concept[] }> = (signal, { matches, picker_open$, fields$, on_choose }) =>
   matches.length === 0
     ? h('div', { className: css.empty }, ['No matches'])
     : h(
         'div',
         {},
-        matches.map((c) => ConceptRow(signal, { app$, fields$, on_choose, concept: c })),
+        matches.map((c) => ConceptRow(signal, { picker_open$, fields$, on_choose, concept: c })),
       )
 
 const ModeToggle: Component<FieldProps> = (signal, { fields$ }) =>
@@ -162,9 +160,9 @@ const render_results_body = (signal: AbortSignal, picker_props: BodyProps): Elem
   return FeaturedBody(signal, picker_props)
 }
 
-const results_bind_key = (app$: FunState<AppState>, fields$: FunState<PickerFields>) =>
+const results_bind_key = (picker_open$: FunState<boolean>, fields$: FunState<PickerFields>) =>
   derive(
-    app$.prop('picker_open'),
+    picker_open$,
     fields$,
     (open, f) => (open ? `${f.view} ${f.query}` : '—'),
   )
@@ -172,24 +170,21 @@ const results_bind_key = (app$: FunState<AppState>, fields$: FunState<PickerFiel
 const PickerResults: Component<BodyProps> = (signal, body_props) =>
   bindView(
     signal,
-    results_bind_key(body_props.app$, body_props.fields$),
+    results_bind_key(body_props.picker_open$, body_props.fields$),
     (region) => render_results_body(region, body_props),
   )
 
 export const Picker: Component<Props> = (signal, props) => {
-  const { app$ } = props
+  const { picker_open$ } = props
   const fields$ = funState<PickerFields>(initial_picker_fields)
 
   let prev_open = false
-  app$.watch(signal, (s) => {
-    if (s.picker_open && !prev_open) {
-      fields$.set(initial_picker_fields)
-    }
-    prev_open = s.picker_open
+  picker_open$.watch(signal, (open) => {
+    if (open && !prev_open) fields$.set(initial_picker_fields)
+    prev_open = open
   })
 
   const body_props: BodyProps = { ...props, fields$ }
-
   const results = PickerResults(signal, body_props)
 
   const panel = hx(
@@ -203,17 +198,17 @@ export const Picker: Component<Props> = (signal, props) => {
     {
       signal,
       props: { className: css.backdrop },
-      on: { click: () => close_modal(app$, fields$) },
+      on: { click: () => close_modal(picker_open$, fields$) },
     },
     [panel],
   )
 
-  bindClass(css.open, mapRead(app$, (s) => s.picker_open), signal)(backdrop)
+  bindClass(css.open, picker_open$, signal)(backdrop)
 
-  app$.watch(signal, (s) => {
-    if (!s.picker_open) return
+  picker_open$.watch(signal, (open) => {
+    if (!open) return
     queueMicrotask(() => {
-      if (signal.aborted || !app$.get().picker_open) return
+      if (signal.aborted || !picker_open$.get()) return
       const el = backdrop.querySelector<HTMLInputElement>('[data-picker-search="true"]')
       el?.focus()
     })
@@ -223,8 +218,8 @@ export const Picker: Component<Props> = (signal, props) => {
     'keydown',
     (e) => {
       if (e.key !== 'Escape') return
-      if (!app$.get().picker_open) return
-      close_modal(app$, fields$)
+      if (!picker_open$.get()) return
+      close_modal(picker_open$, fields$)
     },
     { signal },
   )

@@ -3,7 +3,7 @@ import { type FunState, merge } from '@fun-land/fun-state'
 import type { AppState, Build, Tab } from './AppState_types'
 import { new_id } from '../uuid'
 import { GENERIC_BUILD } from './presets'
-import type { ConceptInclusion } from '../TabConfig/TabConfig_types'
+import type { ConceptInclusion, TabConfig } from '../TabConfig/TabConfig_types'
 import { make_selection } from '../TabConfig/TabConfig_operations'
 import { parse_build } from './AppState_persistance'
 
@@ -13,7 +13,6 @@ export const initial_app_state: AppState = {
     builds: [GENERIC_BUILD],
     active_build_id: GENERIC_BUILD.id,
     active_tab_id: first_tab_id,
-    picker_open: false,
 }
 
 export const find_active_build = (s: AppState): Build | undefined =>
@@ -61,7 +60,8 @@ export const switch_build = (app$: FunState<AppState>, id: string): void => {
     if (b !== undefined) merge(app$)({ active_build_id: id, active_tab_id: b.tabs[0]?.id ?? '' })
 }
 
-export const open_picker = (app$: FunState<AppState>): void => merge(app$)({ picker_open: true })
+export const find_active_tab_config = (s: AppState): TabConfig =>
+    find_active_tab(find_active_build(s), s)?.config ?? { selections: [] }
 
 export const rename_active_build = (app$: FunState<AppState>, name: string): void =>
     app$.focus(active_build_acc).prop('name').set(name)
@@ -123,8 +123,8 @@ export const select_tab = (app$: FunState<AppState>, t: Tab): void => {
 }
 
 // New selection inherits the last selection's tier range (sticky), full range if none.
-export const add_selection = (app$: FunState<AppState>, concept_id: string, sign: ConceptInclusion): void =>
-    app$.focus(active_tab_config_acc.prop('selections')).mod((sels) => {
+export const add_selection = (config$: FunState<TabConfig>, concept_id: string, sign: ConceptInclusion): void =>
+    config$.prop('selections').mod((sels) => {
         const last = sels[sels.length - 1]
         return [...sels, make_selection(concept_id, sign, last?.min_level ?? null, last?.max_level ?? null)]
     })

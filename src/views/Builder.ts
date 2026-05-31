@@ -11,7 +11,6 @@ import { CONCEPTS } from '../models/Concept/Concept_operations'
 import type { Concept } from '../models/Concept/Concept_types'
 import * as bcss from './Builder.css'
 import * as ctrl from './Controls.css'
-import { active_tab_config_acc, open_picker } from '../models/AppState/AppState_operations'
 import { apply_level_range, set_all_overrides, set_override } from '../models/TabConfig/TabConfig_operations'
 import { read_has_active_tab } from '../models/AppState/AppState_reads'
 
@@ -135,9 +134,9 @@ const SelectionList: Component<{ readonly config$: FunState<TabConfig> }> = (sig
     row: ({ signal: row_signal, state, remove }) => Selection(row_signal, { selection$: state, remove }),
   })(h('div', { className: bcss.builder }))
 
-const AddRow: Component<{ readonly app$: FunState<AppState> }> = (signal, { app$ }) =>
+const AddRow: Component<{ readonly open_picker: () => void }> = (signal, { open_picker }) =>
   h('div', { className: ctrl.row }, [
-    Button(signal, { label: 'Add affix…', onclick: () => open_picker(app$) }),
+    Button(signal, { label: 'Add affix…', onclick: open_picker }),
   ])
 
 export const Output: Component<{
@@ -173,16 +172,16 @@ export const Output: Component<{
 
 export const BuilderDeck: Component<{
   readonly app$: FunState<AppState>
+  readonly active_config$: FunState<TabConfig>
+  readonly open_picker: () => void
   readonly on_regex_copied: () => void
-}> = (signal, { app$, on_regex_copied }) => {
-  const config$ = app$.focus(active_tab_config_acc)
-  return bindView(signal, read_has_active_tab(app$), (region, has) =>
+}> = (signal, { app$, active_config$, open_picker, on_regex_copied }) =>
+  bindView(signal, read_has_active_tab(app$), (region, has) =>
     has
       ? h('div', { className: bcss.deck }, [
-          bindView(region, config$, (r, config) => Output(r, { config, on_regex_copied })),
-          AddRow(region, { app$ }),
-          SelectionList(region, { config$ }),
+          bindView(region, active_config$, (r, config) => Output(r, { config, on_regex_copied })),
+          AddRow(region, { open_picker }),
+          SelectionList(region, { config$: active_config$ }),
         ])
       : h('span', { hidden: true }),
   )
-}

@@ -16,6 +16,4 @@ export type AppState = {
   readonly builds: Build[]
   readonly active_build_id: string
   readonly active_tab_id: string
-  /** Modal visibility — in-memory only; never written to `localStorage` */
-  readonly picker_open: boolean
 }

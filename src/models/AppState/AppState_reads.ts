@@ -1,7 +1,7 @@
 /** @module Derrived FunReads of AppState Data */
 import { derive, type FunRead, type FunState } from '@fun-land/fun-state'
 import type { AppState, Build, Tab } from './AppState_types'
-import { active_tab_config_acc } from './AppState_operations'
+import type { TabConfig } from '../TabConfig/TabConfig_types'
 
 /** Build dropdown + toolbar: reacts only when `builds` or `active_build_id` change */
 export const read_build_bar = (app$: FunState<AppState>) =>
@@ -55,7 +55,7 @@ export const read_has_active_tab = (app$: FunState<AppState>): FunRead<boolean> 
       builds.find((b) => b.id === bid)?.tabs.some((t) => t.id === tid) ?? false,
   )
 
-export const is_concept_added = (app$: FunState<AppState>, concept_id: string): FunRead<boolean> =>
-  derive(app$.focus(active_tab_config_acc).prop('selections'), (selections) =>
+export const is_concept_added = (config$: FunState<TabConfig>, concept_id: string): FunRead<boolean> =>
+  derive(config$.prop('selections'), (selections) =>
     selections.some((s) => s.concept_id === concept_id),
   )

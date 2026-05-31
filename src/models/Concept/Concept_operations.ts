@@ -57,7 +57,7 @@ const split_concept = ([id, label, stat, phrase]: SplitSpec): AffixConcept => ({
 
 // "Reduced Ailment Duration on you" is one RePoE group covering every ailment, but
 // a player wards against specific ailments. Split per ailment stat.
-const AILMENT_DURATION_CONCEPTS: readonly Concept[] = (
+const AILMENT_DURATION_CONCEPTS: readonly AffixConcept[] = (
   [
     ['ailment_chill', 'Reduced Chill Duration', 'chill_duration_+%', 'Chill Duration on you'],
     ['ailment_shock', 'Reduced Shock Duration', 'shock_duration_+%', 'Shock duration on you'],
@@ -70,7 +70,7 @@ const AILMENT_DURATION_CONCEPTS: readonly Concept[] = (
 
 // Weapon % damage by type — chaos/cold/fire/lightning/spell-physical are independent
 // player choices. Each affix has exactly one stat so splitting is clean.
-const WEAPON_DAMAGE_TYPE_CONCEPTS: readonly Concept[] = (
+const WEAPON_DAMAGE_TYPE_CONCEPTS: readonly AffixConcept[] = (
   [
     ['weapon_dmg_chaos', 'Chaos Damage %', 'chaos_damage_+%', 'increased Chaos Damage'],
     ['weapon_dmg_cold', 'Cold Damage %', 'cold_damage_+%', 'increased Cold Damage'],
@@ -82,7 +82,7 @@ const WEAPON_DAMAGE_TYPE_CONCEPTS: readonly Concept[] = (
 
 // Spell-added elemental damage is one group spanning the three elements; players
 // pick the element matching their spells. Split per element (keyed on the min stat).
-const SPELL_ADDED_DAMAGE_CONCEPTS: readonly Concept[] = (
+const SPELL_ADDED_DAMAGE_CONCEPTS: readonly AffixConcept[] = (
   [
     ['spell_added_cold', 'Added Cold Damage to Spells', 'spell_minimum_added_cold_damage', 'Cold Damage to Spells'],
     ['spell_added_fire', 'Added Fire Damage to Spells', 'spell_minimum_added_fire_damage', 'Fire Damage to Spells'],
@@ -119,7 +119,7 @@ const LABEL_OVERRIDES: Readonly<Record<string, string>> = {
 const group_label = (group: string): string =>
   LABEL_OVERRIDES[group] ?? group.replace(/([a-z0-9])([A-Z])/g, '$1 $2')
 
-const CURATED_ALL: readonly Concept[] = [
+const CURATED_ALL: readonly AffixConcept[] = [
   ...CURATED,
   ...GEM_LEVEL_CONCEPTS,
   ...AILMENT_DURATION_CONCEPTS,
