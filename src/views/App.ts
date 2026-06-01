@@ -15,15 +15,18 @@ export const App: Component<Record<never, never>> = ($, {}) => {
   const toast$ = create_toast()
   const picker_open$ = funState(false)
 
+  // Save the app state to local storage whenever it changes
   app$.watch($, () => save_state(app$.get()))
 
-  active_config$.watch($, (config) => {
+  // Sync active config changes back into app$
+  active_config$.watch($, (config) => 
     app$.focus(active_tab_config_acc).set(config)
-  })
+  )
 
-  app$.prop('active_tab_id').watch($, () => {
+  // Load the incoming tab's config when the active tab changes
+  app$.prop('active_tab_id').watch($, () => 
     active_config$.set(find_active_tab_config(app$.get()))
-  })
+  )
 
   const on_choose = (concept_id: string, sign: ConceptInclusion): void => add_selection(active_config$, concept_id, sign)
   const is_added = (concept_id: string): boolean => is_concept_added(active_config$, concept_id).get()
